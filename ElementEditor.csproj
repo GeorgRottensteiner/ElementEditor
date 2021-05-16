@@ -1,0 +1,197 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{3EB37F47-1DE6-4D8F-A401-277CD3FE6B05}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ElementEditor</RootNamespace>
+    <AssemblyName>ElementEditor</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ApplicationIcon>blood-splat.ico</ApplicationIcon>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>3.5</OldToolsVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CharsetProject.cs" />
+    <Compile Include="FormCheckResult.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormCheckResult.Designer.cs">
+      <DependentUpon>FormCheckResult.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormMain.Designer.cs">
+      <DependentUpon>FormMain.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormManageCharsets.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormManageCharsets.Designer.cs">
+      <DependentUpon>FormManageCharsets.cs</DependentUpon>
+    </Compile>
+    <Compile Include="P:\Common#\Collections\Map.cs">
+      <Link>Common\Map.cs</Link>
+    </Compile>
+    <Compile Include="P:\Common#\Collections\MultiMap.cs">
+      <Link>Common\MultiMap.cs</Link>
+    </Compile>
+    <Compile Include="P:\Common#\Collections\Set.cs">
+      <Link>Common\Set.cs</Link>
+    </Compile>
+    <Compile Include="P:\Common#\debug\debug.cs">
+      <Link>Common\debug.cs</Link>
+    </Compile>
+    <Compile Include="P:\Common#\Forms\FastPictureBox.cs">
+      <Link>Common\FastPictureBox.cs</Link>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="P:\Common#\Forms\ImageListbox.cs">
+      <Link>Common\ImageListbox.cs</Link>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="P:\Common#\Forms\ScrollablePanel.cs">
+      <Link>Common\ScrollablePanel.cs</Link>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="P:\Common#\Game\TileLayer.cs">
+      <Link>Common\TileLayer.cs</Link>
+    </Compile>
+    <Compile Include="P:\Common#\Imaging\FastImage.cs">
+      <Link>Common\FastImage.cs</Link>
+    </Compile>
+    <Compile Include="P:\Common#\Imaging\IImage.cs">
+      <Link>Common\IImage.cs</Link>
+    </Compile>
+    <Compile Include="P:\Common#\Imaging\MemoryImage.cs">
+      <Link>Common\MemoryImage.cs</Link>
+    </Compile>
+    <Compile Include="P:\Common#\IO\BinaryReader.cs">
+      <Link>Common\BinaryReader.cs</Link>
+    </Compile>
+    <Compile Include="P:\Common#\IO\File.cs">
+      <Link>Common\File.cs</Link>
+    </Compile>
+    <Compile Include="P:\Common#\IO\FileChunk.cs">
+      <Link>Common\FileChunk.cs</Link>
+    </Compile>
+    <Compile Include="P:\Common#\IO\IReader.cs">
+      <Link>Common\IReader.cs</Link>
+    </Compile>
+    <Compile Include="P:\Common#\IO\MemoryReader.cs">
+      <Link>Common\MemoryReader.cs</Link>
+    </Compile>
+    <Compile Include="P:\Common#\Memory\ByteBuffer.cs">
+      <Link>Common\ByteBuffer.cs</Link>
+    </Compile>
+    <Compile Include="P:\Common#\Misc\Extensions.cs">
+      <Link>Common\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="P:\Common#\Misc\GenericHelper.cs">
+      <Link>Common\GenericHelper.cs</Link>
+    </Compile>
+    <Compile Include="P:\Common#\Misc\Misc.cs">
+      <Link>Common\Misc.cs</Link>
+    </Compile>
+    <Compile Include="P:\Common#\String\Convert.cs">
+      <Link>Common\Convert.cs</Link>
+    </Compile>
+    <Compile Include="P:\Common#\String\Path.cs">
+      <Link>Common\Path.cs</Link>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Project.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="FormCheckResult.resx">
+      <DependentUpon>FormCheckResult.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormMain.resx">
+      <DependentUpon>FormMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormManageCharsets.resx">
+      <DependentUpon>FormManageCharsets.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <None Include="app.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="SpriteProject.cs" />
+    <Compile Include="Types.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="blood-splat.ico" />
+    <Content Include="Resources\tb_save_export.png" />
+    <None Include="map_numbers.png" />
+    <None Include="Resources\MapNumbers.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
