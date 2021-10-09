@@ -6,8 +6,8 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using System.Linq;
-
-
+using C64Studio.Formats;
+using C64Studio.Displayer;
 
 namespace ElementEditor
 {
@@ -175,7 +175,7 @@ namespace ElementEditor
       comboProjectType.Items.Add( "Adventure" );
       comboProjectType.Items.Add( "Soulless 2" );
       comboProjectType.Items.Add( "Downhill Challenge" );
-      comboProjectType.Items.Add( "Vinterstorm" );
+      comboProjectType.Items.Add( "MegaSisters" );
       comboProjectType.SelectedIndex = 0;
 
       comboScreenObjectFlags.Items.Add( "None" );
@@ -447,8 +447,8 @@ namespace ElementEditor
       &&   ( comboElementCharset.SelectedIndex < m_Project.Charsets.Count ) )
       {
         SetActiveElementCharset( m_Project.Charsets[comboScreenCharset.SelectedIndex],
-                               m_CurrentScreen.OverrideMC1 != -1 ? m_CurrentScreen.OverrideMC1 : m_Project.Charsets[comboScreenCharset.SelectedIndex].MultiColor1,
-                               m_CurrentScreen.OverrideMC2 != -1 ? m_CurrentScreen.OverrideMC2 : m_Project.Charsets[comboScreenCharset.SelectedIndex].MultiColor2,
+                               m_CurrentScreen.OverrideMC1 != -1 ? m_CurrentScreen.OverrideMC1 : m_Project.Charsets[comboScreenCharset.SelectedIndex].Colors.MultiColor1,
+                               m_CurrentScreen.OverrideMC2 != -1 ? m_CurrentScreen.OverrideMC2 : m_Project.Charsets[comboScreenCharset.SelectedIndex].Colors.MultiColor2,
                                m_Project.CharsetProjects[comboScreenCharset.SelectedIndex].Multicolor );
       }
 
@@ -566,17 +566,13 @@ namespace ElementEditor
       &&   ( m_CurrentScreen.CharsetIndex >= 0 )
       &&   ( m_CurrentScreen.CharsetIndex < m_Project.Charsets.Count ) )
       {
-        Types.CharsetProject charSet = m_Project.Charsets[m_CurrentScreen.CharsetIndex];
+        CharsetProject charSet = m_Project.Charsets[m_CurrentScreen.CharsetIndex];
 
         for ( int i = 0; i < 40; ++i )
         {
           for ( int j = 0; j < 25; ++j )
           {
-            pictureEditor.DisplayPage.DrawFromImage( charSet.Characters[m_Project.EmptyChar].AllColorImage,
-                                                   i * 8,
-                                                   j * 8,
-                                                   m_Project.EmptyColor * 8, 0,
-                                                   8, 8 );
+            CharacterDisplayer.DisplayChar( charSet, m_Project.EmptyChar, pictureEditor.DisplayPage, i * 8, j * 8, m_Project.EmptyColor );
           }
         }
       }
@@ -687,7 +683,7 @@ namespace ElementEditor
       &&   ( Screen.CharsetIndex >= 0 )
       &&   ( Screen.CharsetIndex < m_Project.Charsets.Count ) )
       {
-        Types.CharsetProject charSet = m_Project.Charsets[Screen.CharsetIndex];
+        CharsetProject charSet = m_Project.Charsets[Screen.CharsetIndex];
 
         foreach ( Project.ScreenElement element in Screen.DisplayedElements )
         {
@@ -767,10 +763,8 @@ namespace ElementEditor
                     targetX -= Screen.Width;
                     targetY++;
                   }
-                  pictureEditor.DisplayPage.DrawFromImage( charSet.Characters[element.Char].AllColorImage,
-                                                                 ( targetX - m_ScreenOffsetX ) * 8, ( targetY - m_ScreenOffsetY ) * 8,
-                                                                 element.Color * 8, 0,
-                                                                 8, 8 );
+
+                  CharacterDisplayer.DisplayChar( charSet, element.Char, pictureEditor.DisplayPage, ( targetX - m_ScreenOffsetX ) * 8, ( targetY - m_ScreenOffsetY ) * 8, element.Color );
                   m_ScreenContent[targetX, targetY].Char = (byte)element.Char;
                   m_ScreenContent[targetX, targetY].Color = (byte)element.Color;
                   m_ScreenContent[targetX, targetY].ScreenElement = element;
@@ -790,10 +784,8 @@ namespace ElementEditor
                     targetX -= Screen.Width;
                     targetY++;
                   }
-                  pictureEditor.DisplayPage.DrawFromImage( charSet.Characters[element.Char].AllColorImage,
-                                                               ( targetX - m_ScreenOffsetX ) * 8, ( targetY - m_ScreenOffsetY ) * 8,
-                                                               element.Color * 8, 0,
-                                                               8, 8 );
+
+                  CharacterDisplayer.DisplayChar( charSet, element.Char, pictureEditor.DisplayPage, ( targetX - m_ScreenOffsetX ) * 8, ( targetY - m_ScreenOffsetY ) * 8, element.Color );
                   m_ScreenContent[targetX, targetY].Char = (byte)element.Char;
                   m_ScreenContent[targetX, targetY].Color = (byte)element.Color;
                   m_ScreenContent[targetX, targetY].ScreenElement = element;
@@ -818,10 +810,8 @@ namespace ElementEditor
                   {
                     charVal = 0;
                   }
-                  pictureEditor.DisplayPage.DrawFromImage( charSet.Characters[charVal].AllColorImage,
-                                                               ( targetX - m_ScreenOffsetX ) * 8, ( targetY - m_ScreenOffsetY ) * 8,
-                                                               element.Color * 8, 0,
-                                                               8, 8 );
+
+                  CharacterDisplayer.DisplayChar( charSet, charVal, pictureEditor.DisplayPage, ( targetX - m_ScreenOffsetX ) * 8, ( targetY - m_ScreenOffsetY ) * 8, element.Color );
                   m_ScreenContent[targetX, targetY].Char = (byte)charVal;
                   m_ScreenContent[targetX, targetY].Color = (byte)element.Color;
                   m_ScreenContent[targetX, targetY].ScreenElement = element;
@@ -846,10 +836,8 @@ namespace ElementEditor
                   {
                     charVal = 0;
                   }
-                  pictureEditor.DisplayPage.DrawFromImage( charSet.Characters[charVal].AllColorImage, 
-                                                               ( targetX - m_ScreenOffsetX ) * 8, ( targetY - m_ScreenOffsetY ) * 8,
-                                                               element.Color * 8, 0,
-                                                               8, 8 );
+
+                  CharacterDisplayer.DisplayChar( charSet, charVal, pictureEditor.DisplayPage, ( targetX - m_ScreenOffsetX ) * 8, ( targetY - m_ScreenOffsetY ) * 8, element.Color );
                   m_ScreenContent[targetX, targetY].Char = (byte)charVal;
                   m_ScreenContent[targetX, targetY].Color = (byte)element.Color;
                   m_ScreenContent[targetX, targetY].ScreenElement = element;
@@ -904,10 +892,8 @@ namespace ElementEditor
                       targetX -= Screen.Width;
                       targetY++;
                     }
-                    pictureEditor.DisplayPage.DrawFromImage( charSet.Characters[element.Char].AllColorImage,
-                                                                 ( targetX - m_ScreenOffsetX ) * 8, ( targetY - m_ScreenOffsetY ) * 8,
-                                                                 element.Color * 8, 0,
-                                                                 8, 8 );
+
+                    CharacterDisplayer.DisplayChar( charSet, element.Char, pictureEditor.DisplayPage, ( targetX - m_ScreenOffsetX ) * 8, ( targetY - m_ScreenOffsetY ) * 8, element.Color );
                     m_ScreenContent[targetX, targetY].Char = (byte)element.Char;
                     m_ScreenContent[targetX, targetY].Color = (byte)element.Color;
                     m_ScreenContent[targetX, targetY].ScreenElement = element;
@@ -928,7 +914,7 @@ namespace ElementEditor
       {
         return;
       }
-      Types.CharsetProject charSet = m_Project.Charsets[m_CurrentScreen.CharsetIndex];
+      CharsetProject charSet = m_Project.Charsets[m_CurrentScreen.CharsetIndex];
 
       for ( int i = 0; i < Element.Characters.Width; ++i )
       {
@@ -943,11 +929,7 @@ namespace ElementEditor
           }
           if ( charSet != null )
           {
-            pictureEditor.DisplayPage.DrawFromImage( charSet.Characters[Element.Characters[i, j].Char].AllColorImage,
-                                                           ( targetX - m_ScreenOffsetX ) * 8,
-                                                           ( targetY - m_ScreenOffsetY ) * 8,
-                                                           Element.Characters[i, j].Color * 8, 0,
-                                                           8, 8 );
+            CharacterDisplayer.DisplayChar( charSet, Element.Characters[i, j].Char, pictureEditor.DisplayPage, ( targetX - m_ScreenOffsetX ) * 8, ( targetY - m_ScreenOffsetY ) * 8, Element.Characters[i, j].Color );
           }
           m_ScreenContent[targetX, targetY].Char  = Element.Characters[i, j].Char;
           m_ScreenContent[targetX, targetY].Color = Element.Characters[i, j].Color;
@@ -980,15 +962,12 @@ namespace ElementEditor
       {
         return;
       }
-      Types.CharsetProject charSet = m_Project.Charsets[m_CurrentEditedElement.CharsetIndex];
+      CharsetProject charSet = m_Project.Charsets[m_CurrentEditedElement.CharsetIndex];
       for ( int i = 0; i < m_CurrentEditedElement.Characters.Width; ++i )
       {
         for ( int j = 0; j < m_CurrentEditedElement.Characters.Height; ++j )
         {
-          pictureElement.DisplayPage.DrawFromImage( charSet.Characters[m_CurrentEditedElement.Characters[i, j].Char].AllColorImage, 
-                                                        i * 8, j * 8,
-                                                        m_CurrentEditedElement.Characters[i, j].Color * 8, 0,
-                                                        8, 8 );
+          CharacterDisplayer.DisplayChar( charSet, m_CurrentEditedElement.Characters[i, j].Char, pictureElement.DisplayPage, i * 8, j * 8, m_CurrentEditedElement.Characters[i, j].Color );
         }
       }
       pictureElement.Invalidate();
@@ -1002,9 +981,9 @@ namespace ElementEditor
 
       if ( AlternativeColor == -1 )
       {
-        AlternativeColor = Data.Color;
+        AlternativeColor = Data.Tile.CustomColor;
       }
-      RebuildSpriteImage( Data.Data, Data.Image, Data.Multicolor, AlternativeColor );
+      RebuildSpriteImage( Data.Tile.Data, Data.Tile.Image, Data.Tile.Mode == RetroDevStudio.GraphicTileMode.COMMODORE_MULTICOLOR, AlternativeColor );
     }
 
 
@@ -1028,7 +1007,7 @@ namespace ElementEditor
               else
               {
                 //Data.Image.SetPixel( k * 8 + i, j, m_ColorValues[m_BackgroundColorSprites] );
-                Image.SetPixel( k * 8 + i, j, (uint)m_SpriteProject.BackgroundColor );
+                Image.SetPixel( k * 8 + i, j, (uint)m_SpriteProject.Colors.BackgroundColor );
               }
             }
           }
@@ -1048,13 +1027,13 @@ namespace ElementEditor
               switch ( pixelValue )
               {
                 case 0:
-                  pixelValue = m_SpriteProject.BackgroundColor;
+                  pixelValue = m_SpriteProject.Colors.BackgroundColor;
                   break;
                 case 1:
-                  pixelValue = m_SpriteProject.MultiColor1;
+                  pixelValue = m_SpriteProject.Colors.MultiColor1;
                   break;
                 case 3:
-                  pixelValue = m_SpriteProject.MultiColor2;
+                  pixelValue = m_SpriteProject.Colors.MultiColor2;
                   break;
                 case 2:
                   pixelValue = Color;
@@ -1070,19 +1049,25 @@ namespace ElementEditor
 
 
 
-    void RebuildCharImage( Types.CharsetProject CharSet, int Color1, int Color2, int CharIndex, int AlternativeColor, bool Multicolor )
+    void RebuildCharImage( CharsetProject CharSet, int Color1, int Color2, int CharIndex, int AlternativeColor, bool Multicolor )
     {
       if ( CharSet == null )
       {
         return;
       }
-      Types.CharData Char = CharSet.Characters[CharIndex];
+      CharData Char = CharSet.Characters[CharIndex];
 
       if ( AlternativeColor == -1 )
       {
-        AlternativeColor = Char.Color;
+        AlternativeColor = Char.Tile.CustomColor;
       }
 
+      CharacterDisplayer.DisplayChar( CharSet,
+                                      CharIndex,
+                                      CharSet.Characters[CharIndex].Tile.Image,
+                                      0, 0,
+                                      AlternativeColor );
+      /*
       if ( ( !Multicolor )
       ||   ( AlternativeColor < 8 ) )
       {
@@ -1093,13 +1078,13 @@ namespace ElementEditor
         {
           for ( int i = 0; i < 8; ++i )
           {
-            if ( ( Char.Data.ByteAt( j ) & ( 1 << ( 7 - i ) ) ) != 0 )
+            if ( ( Char.Tile.Data.ByteAt( j ) & ( 1 << ( 7 - i ) ) ) != 0 )
             {
               colorIndex = charColor;
             }
             else
             {
-              colorIndex = CharSet.BackgroundColor;
+              colorIndex = CharSet.Colors.BackgroundColor;
             }
             CharSet.Characters[CharIndex].AllColorImage.SetPixel( AlternativeColor * 8 + i, j, (uint)colorIndex );
           }
@@ -1114,12 +1099,12 @@ namespace ElementEditor
         {
           for ( int i = 0; i < 4; ++i )
           {
-            int pixelValue = ( Char.Data.ByteAt( j ) & ( 3 << ( ( 3 - i ) * 2 ) ) ) >> ( ( 3 - i ) * 2 );
+            int pixelValue = ( Char.Tile.Data.ByteAt( j ) & ( 3 << ( ( 3 - i ) * 2 ) ) ) >> ( ( 3 - i ) * 2 );
 
             switch ( pixelValue )
             {
               case 0:
-                pixelValue = CharSet.BackgroundColor;
+                pixelValue = CharSet.Colors.BackgroundColor;
                 break;
               case 1:
                 pixelValue = Color1;//CharSet.MultiColor1;
@@ -1135,7 +1120,7 @@ namespace ElementEditor
             CharSet.Characters[CharIndex].AllColorImage.SetPixel( AlternativeColor * 8 + i * 2 + 1, j, (uint)pixelValue );
           }
         }
-      }
+      }*/
     }
 
 
@@ -1166,7 +1151,7 @@ namespace ElementEditor
 
 
 
-    public Types.CharsetProject OpenCharsetProject( string Filename )
+    public CharsetProject OpenCharsetProject( string Filename )
     {
       GR.Memory.ByteBuffer    projectFile = GR.IO.File.ReadAllBytes( Filename );
       if ( projectFile == null )
@@ -1174,78 +1159,16 @@ namespace ElementEditor
         return null;
       }
 
-      Types.CharsetProject    charSet = new ElementEditor.Types.CharsetProject();
+      CharsetProject    charSet = new CharsetProject();
 
-      GR.IO.MemoryReader      memIn = projectFile.MemoryReader();
+      charSet.ReadFromBuffer( projectFile );
 
-      uint version = memIn.ReadUInt32();
-      string name = memIn.ReadString();
-      string charsetFilename = memIn.ReadString();
-      charSet.Name = Filename;
-      for ( int i = 0; i < 256; ++i )
-      {
-        charSet.Characters[i].Color = memIn.ReadInt32();
-      }
-      for ( int i = 0; i < 256; ++i )
-      {
-        charSet.Characters[i].Multicolor = ( memIn.ReadUInt8() != 0 );
-        charSet.Characters[i].Multicolor = true;
-      }
-      charSet.BackgroundColor = memIn.ReadInt32();
-      charSet.MultiColor1 = memIn.ReadInt32();
-      charSet.MultiColor2 = memIn.ReadInt32();
-
-      for ( int i = 0; i < 256; ++i )
-      {
-        int tileColor1 = memIn.ReadInt32();
-        int tileColor2 = memIn.ReadInt32();
-        int tileColor3 = memIn.ReadInt32();
-        int tileColor4 = memIn.ReadInt32();
-        int tileChar1 = memIn.ReadInt32();
-        int tileChar2 = memIn.ReadInt32();
-        int tileChar3 = memIn.ReadInt32();
-        int tileChar4 = memIn.ReadInt32();
-      }
-
-      bool genericMulticolor = ( memIn.ReadInt32() != 0 );
-      GR.Memory.ByteBuffer  testbed = new GR.Memory.ByteBuffer();
-      memIn.ReadBlock( testbed, 64 );
-
-      GR.Memory.ByteBuffer  charsetData = new GR.Memory.ByteBuffer();
-      memIn.ReadBlock( charsetData, 2048 );
-
-      for ( int i = 0; i < 256; ++i )
-      {
-        charSet.Characters[i].Data = charsetData.SubBuffer( i * 8, 8 );
-      }
-
-      memIn.ReadUInt32();
-
-      memIn.ReadString();
-      string exportPathBlockTable = memIn.ReadString();
-      string exportPathCharset = memIn.ReadString();
-      string exportPathEditorTiles = memIn.ReadString();
-
-      // categories
-      int   categoryCount = memIn.ReadInt32();
-      for ( int i = 0; i < categoryCount; ++i )
-      {
-        int     catKey = memIn.ReadInt32();
-        string  catName = memIn.ReadString();
-      }
-      for ( int i = 0; i < 256; ++i )
-      {
-        charSet.Characters[i].Category = memIn.ReadInt32();
-      }
-
-
-      //m_Project.CharsetProjectFilename = Filename;
       return charSet;
     }
 
 
 
-    private void SetActiveScreenCharset( Types.CharsetProject CharSet, int Color1, int Color2, bool Multicolor )
+    private void SetActiveScreenCharset( CharsetProject CharSet, int Color1, int Color2, bool Multicolor )
     {
       if ( CharSet == null )
       {
@@ -1265,7 +1188,7 @@ namespace ElementEditor
       {
         for ( int i = 0; i < 16; ++i )
         {
-          pictureCharset.Items.Add( i + j * 16, CharSet.Characters[i + j * 16].AllColorImage.GetImage( CharSet.Characters[i + j * 16].Color * 8, 0, 8, 8 ) );
+          pictureCharset.Items.Add( i + j* 16, CharSet.Characters[i + j * 16].Tile.Image );
         }
       }
       RedrawScreen();
@@ -1274,7 +1197,7 @@ namespace ElementEditor
 
 
 
-    public void SetActiveElementCharset( Types.CharsetProject CharSet, int Color1, int Color2, bool Multicolor )
+    public void SetActiveElementCharset( CharsetProject CharSet, int Color1, int Color2, bool Multicolor )
     {
       for ( int i = 0; i < 256; ++i )
       {
@@ -1290,7 +1213,7 @@ namespace ElementEditor
       {
         for ( int i = 0; i < 16; ++i )
         {
-          pictureCharset.Items.Add( i + j * 16, CharSet.Characters[i + j * 16].AllColorImage.GetImage( CharSet.Characters[i + j * 16].Color * 8, 0, 8, 8 ) );
+          pictureCharset.Items.Add( i + j * 16, CharSet.Characters[i + j * 16].Tile.Image );
         }
       }
       RedrawElementPreview();
@@ -1336,18 +1259,18 @@ namespace ElementEditor
         m_Project.CharsetProjects.Add( @"d:\privat\projekte\c64\j\studio\j.charsetproject" );
          */
 
-        if ( ( m_Project.CharsetProjects.Count == 0 )
+      if ( ( m_Project.CharsetProjects.Count == 0 )
         && ( !string.IsNullOrEmpty( m_Project.OldCharsetProjectFilename ) ) )
         {
           string fullPath = GR.Path.Append( GR.Path.RemoveFileSpec( Filename ), m_Project.OldCharsetProjectFilename );
-          Types.CharsetProject charSet = OpenCharsetProject( fullPath );
+          CharsetProject charSet = OpenCharsetProject( fullPath );
           if ( charSet != null )
           {
             charSet.Name = fullPath;
             string shortName = System.IO.Path.GetFileNameWithoutExtension( fullPath );
             m_Project.Charsets.Add( charSet );
 
-            Types.CharsetProjectInfo info = new ElementEditor.Types.CharsetProjectInfo();
+            CharsetProjectInfo info = new CharsetProjectInfo();
             info.Filename = fullPath;
             info.Multicolor = true;
             m_Project.CharsetProjects.Add( info );
@@ -1358,7 +1281,7 @@ namespace ElementEditor
           for ( int i = 0; i < m_Project.CharsetProjects.Count; ++i )
           {
             string charSetFile = m_Project.CharsetProjects[i].Filename;
-            Types.CharsetProject charSet = OpenCharsetProject( charSetFile );
+            CharsetProject charSet = OpenCharsetProject( charSetFile );
             if ( charSet == null )
             {
               charSetFile = System.IO.Path.Combine( System.IO.Path.GetDirectoryName( Filename ), System.IO.Path.GetFileName( charSetFile ) );
@@ -1379,7 +1302,7 @@ namespace ElementEditor
             m_Project.Charsets.Add( charSet );
           }
         }
-        foreach ( Types.CharsetProject charSet in m_Project.Charsets )
+        foreach ( CharsetProject charSet in m_Project.Charsets )
         {
           if ( charSet == null )
           {
@@ -1391,17 +1314,24 @@ namespace ElementEditor
             comboScreenCharset.Items.Add( System.IO.Path.GetFileNameWithoutExtension( charSet.Name ) );
             comboElementCharset.Items.Add( System.IO.Path.GetFileNameWithoutExtension( charSet.Name ) );
 
+            /*
             for ( int j = 0; j < 16; ++j )
             {
               for ( int i = 0; i < 256; ++i )
               {
                 charSet.Characters[i].AllColorImage.SetPaletteColor( j, (byte)( ( m_Project.m_ColorValues[j] & 0x00ff0000 ) >> 16 ), (byte)( ( m_Project.m_ColorValues[j] & 0x0000ff00 ) >> 8 ), (byte)( m_Project.m_ColorValues[j] & 0xff ) );
               }
-            }
+            }*/
           }
         }
-        comboScreenCharset.SelectedIndex = 0;
-        comboElementCharset.SelectedIndex = 0;
+        if ( comboScreenCharset.Items.Count > 0 )
+        {
+          comboScreenCharset.SelectedIndex = 0;
+        }
+        if ( comboElementCharset.Items.Count > 0 )
+        {
+          comboElementCharset.SelectedIndex = 0;
+        }
         comboEmptyChar.SelectedIndex = m_Project.EmptyChar;
         comboEmptyColor.SelectedIndex = m_Project.EmptyColor;
 
@@ -1420,10 +1350,10 @@ namespace ElementEditor
                 if ( ( element.Object != null )
                 &&   ( element.Object.TemplateIndex != -1 ) )
                 {
-                  element.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Image );
-                  RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Data,
+                  element.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile.Image );
+                  RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile.Data,
                                       element.Object.SpriteImage,
-                                      m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Multicolor,
+                                      m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Mode == RetroDevStudio.SpriteMode.COMMODORE_24_X_21_MULTICOLOR,
                                       element.Object.Color );
                 }
               }
@@ -1433,7 +1363,7 @@ namespace ElementEditor
       }
       if ( m_Project.Charsets.Count > 0 )
       {
-        SetActiveElementCharset( m_Project.Charsets[0], m_Project.Charsets[0].MultiColor1, m_Project.Charsets[0].MultiColor2, m_Project.CharsetProjects[0].Multicolor );
+        SetActiveElementCharset( m_Project.Charsets[0], m_Project.Charsets[0].Colors.MultiColor1, m_Project.Charsets[0].Colors.MultiColor2, m_Project.CharsetProjects[0].Multicolor );
       }
       RedrawMap();
       Modified = false;
@@ -2187,7 +2117,7 @@ namespace ElementEditor
               screenElement.Object = new Project.GameObject();
               if ( screenElement.Object.TemplateIndex != -1 )
               {
-                screenElement.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Image );
+                screenElement.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Tile.Image );
               }
               Modified = true;
             }
@@ -2227,7 +2157,7 @@ namespace ElementEditor
               }
               if ( screenElement.Index < m_Project.ObjectTemplates.Count )
               {
-                screenElement.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Index].StartSprite].Image );
+                screenElement.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Index].StartSprite].Tile.Image );
               }
               Modified = true;
             }
@@ -2578,9 +2508,9 @@ namespace ElementEditor
           screenElement.Object.Color = screenElement.Color;
           if ( screenElement.Object.TemplateIndex != -1 )
           {
-            RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Data,
+            RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Tile.Data,
                                 screenElement.Object.SpriteImage,
-                                m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Multicolor,
+                                m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Mode == RetroDevStudio.SpriteMode.COMMODORE_24_X_21_MULTICOLOR,
                                 screenElement.Object.Color );
           }
         }
@@ -3020,7 +2950,8 @@ namespace ElementEditor
 
     private bool ProjectTypeHasCompactedObjects()
     {
-      if ( m_Project.ProjectType == "Downhill Challenge" )
+      if ( ( m_Project.ProjectType == "Downhill Challenge" )
+      ||   ( m_Project.ProjectType == "MegaSisters" ) )
       {
         return true;
       }
@@ -3031,7 +2962,8 @@ namespace ElementEditor
 
     private bool ProjectTypeAllowsColorInElements()
     {
-      if ( m_Project.ProjectType == "Cartridge" )
+      if ( ( m_Project.ProjectType == "Cartridge" )
+      ||   ( m_Project.ProjectType == "MegaSisters" ) )
       {
         return false;
       }
@@ -3108,7 +3040,8 @@ namespace ElementEditor
 
     private bool ProjectTypeWantsElementDataColumnRow()
     {
-      if ( m_Project.ProjectType == "Cartridge" )
+      if ( ( m_Project.ProjectType == "Cartridge" )
+      ||   ( m_Project.ProjectType == "MegaSisters" ) )
       {
         return true;
       }
@@ -3120,7 +3053,8 @@ namespace ElementEditor
     private bool ProjectTypeWantsScreenSize()
     {
       if ( ( m_Project.ProjectType == "Cartridge" )
-      ||   ( m_Project.ProjectType == "Downhill Challenge" ) )
+      ||   ( m_Project.ProjectType == "Downhill Challenge" )
+      ||   ( m_Project.ProjectType == "MegaSisters" ) )
       {
         return true;
       }
@@ -3415,7 +3349,11 @@ namespace ElementEditor
 
       var elementBuffers = new List<DataInfo>();
       elementBuffers.AddRange( elementDatas );
-      elementBuffers.AddRange( elementColor );
+
+      if ( ProjectTypeAllowsColorInElements() )
+      {
+        elementBuffers.AddRange( elementColor );
+      }
 
       //CollapseBuffers( elementDatas );
       //CollapseBuffers( elementColor );
@@ -3433,26 +3371,26 @@ namespace ElementEditor
       {
         DataInfo data = workList[0];
 
-        Debug.Log( "Checking " + data.Name );
+        //Debug.Log( "Checking " + data.Name );
 
         if ( ( data.ReplacementData != null )
         &&   ( data.NextData == null )
         &&   ( data.PreviousData == null ) )
         {
-          Debug.Log( "Removing data " + data.Name + " with replacement " + data.ReplacementData.Name );
+          //Debug.Log( "Removing data " + data.Name + " with replacement " + data.ReplacementData.Name );
           workList.RemoveAt( 0 );
           continue;
         }
         if ( data.PreviousData != null )
         {
           // keep for later
-          Debug.Log( "move to back " + data.Name );
+          //Debug.Log( "move to back " + data.Name );
           workList.RemoveAt( 0 );
           workList.Add( data );
           continue;
         }
 
-        Debug.Log( "Insert " + data.Name );
+        //Debug.Log( "Insert " + data.Name );
         result += data.Name + "\r\n";
         result += "!byte ";
 
@@ -3468,7 +3406,7 @@ namespace ElementEditor
               //result += "\r\n;was " + data.NextData.Name + "\r\n!byte ";
               result += "\r\n" + data.NextData.Name + "\r\n!byte ";
 
-              Debug.Log( "done, remove " + data.Name );
+              //Debug.Log( "done, remove " + data.Name );
               workList.RemoveAt( 0 );
               break;
             }
@@ -3476,7 +3414,7 @@ namespace ElementEditor
           }
           if ( workList.Contains( data.NextData ) )
           {
-            Debug.Log( "Move to top " + data.NextData.Name );
+            //Debug.Log( "Move to top " + data.NextData.Name );
             workList.Remove( data.NextData );
             workList.Insert( 0, data.NextData );
             data = data.NextData;
@@ -3498,7 +3436,7 @@ namespace ElementEditor
             }
           }
         }
-        Debug.Log( "Removing " + data.Name );
+        //Debug.Log( "Removing " + data.Name );
         workList.RemoveAt( 0 );
         /*
         while ( data.NextData != null )
@@ -3621,14 +3559,25 @@ namespace ElementEditor
         }
         result += m_Project.ExportPrefix + "_LEVEL_" + screenIndex.ToString() + "\r\n";
         if ( ( ProjectTypeWantsScreenSize() )
+        &&   ( !ProjectTypeRequiresSortedElementsByX() ) 
         &&   ( !ProjectTypeRequiresSortedElementsByY() ) )
         {
           // scroll size
           result += "          !byte " + screen.Width.ToString() + "\r\n";
         }
+        else if ( ( ProjectTypeWantsScreenSize() )
+        &&        ( ProjectTypeRequiresSortedElementsByX() ) )
+        {
+          // scroll size
+          result += "          !word " + screen.Width.ToString() + "\r\n";
+        }
 
         List<Project.ScreenElement>     levelElements = screen.DisplayedElements;
 
+        if ( ProjectTypeRequiresSortedElementsByX() )
+        {
+          levelElements = SortElementsByX( levelElements );
+        }
         if ( ProjectTypeRequiresSortedElementsByY() )
         {
           levelElements = SortElementsByY( levelElements );
@@ -3638,7 +3587,12 @@ namespace ElementEditor
         string exportElementType = "";
         string exportData = "";
 
-        if ( screen.ConfigByte != 0 )
+
+        if ( ProjectTypeAlwaysRequiresLevelConfig() )
+        {
+          result += "          !byte " + screen.ConfigByte.ToString() + "\r\n";
+        }
+        else if ( screen.ConfigByte != 0 )
         {
           result += "          !byte LD_LEVEL_CONFIG," + screen.ConfigByte.ToString() + "\r\n";
         }
@@ -3646,10 +3600,27 @@ namespace ElementEditor
         string prevElementName = "";
         string prevSpawnSpotType = "";
         int localElementIndex = 0;
+        int   currentElementX = 0;
         int   currentElementY = 0;
 
         foreach ( Project.ScreenElement screenElement in levelElements )
         {
+          if ( ( ProjectTypeRequiresSortedElementsByX() )
+          &&   ( screenElement.X > currentElementX ) )
+          {
+            int     delta = screenElement.X - currentElementX;
+
+            while ( delta > 31 )
+            {
+              result += "          !byte LDF_X_POS + 31; " + screenElement.X.ToString() + "\r\n";
+              delta -= 31;
+            }
+            if ( delta > 0 )
+            {
+              result += "          !byte LDF_X_POS + " + delta + "; " + screenElement.X.ToString() + "\r\n";
+            }
+            currentElementX = screenElement.X;
+          }
           if ( ( ProjectTypeRequiresSortedElementsByY() )
           &&   ( screenElement.Y > currentElementY ) )
           {
@@ -3679,16 +3650,17 @@ namespace ElementEditor
                 int xPos = screenElement.X;
                 int yPos = screenElement.Y;
 
-                if ( ProjectTypeRequiresSortedElementsByY() )
+                if ( ( ProjectTypeRequiresSortedElementsByX() )
+                ||   ( ProjectTypeRequiresSortedElementsByY() ) )
                 {
                   if ( elementName == prevElementName )
                   {
                     // FFxxxxxx
-                    exportData = "LDF_PREV_ELEMENT + " + xPos.ToString() + "\r\n";
+                    exportData = "LDF_PREV_ELEMENT + " + yPos.ToString() + "\r\n";
                   }
                   else
                   {
-                    exportData = "LDF_ELEMENT + " + xPos.ToString() + "," + elementName +  "\r\n";
+                    exportData = "LDF_ELEMENT + " + yPos.ToString() + "," + elementName +  "\r\n";
                   }
                 }
                 else
@@ -3722,137 +3694,168 @@ namespace ElementEditor
                 int xPos = screenElement.X;
                 int yPos = screenElement.Y;
 
-                if ( !ProjectTypeAllowsCombiningYRepeatsWith3Bits() )
+                if ( ProjectTypeRequiresSortedElementsByX() )
                 {
-                  if ( ProjectTypeAllowsFlagsInXPos() )
-                  {
-                    xPos |= ( screenElement.Flags << 6 );
-                  }
-
                   if ( elementName == prevElementName )
                   {
-                    yPos |= 0x80;
-                    exportData = xPos.ToString() + "," + yPos.ToString() + "," + screenElement.Repeats.ToString() + "\r\n";
+                    // FFxxxxxx
+                    exportData = "LDF_PREV_ELEMENT_LINE + " + yPos.ToString() + "," + screenElement.Repeats + "\r\n";
                   }
                   else
                   {
-                    exportData = xPos.ToString() + "," + yPos.ToString() + "," + screenElement.Repeats.ToString() + "," + elementName + "\r\n";
+                    exportData = "LDF_ELEMENT_LINE + " + yPos.ToString() + "," + screenElement.Repeats + "," + elementName + "\r\n";
                   }
                 }
                 else
                 {
-                  bool  repeatElement = false;
-                  if ( ( ProjectTypeSupportsElementLineRepeat() )
-                  &&   ( elementName == prevElementName ) )
+                  if ( !ProjectTypeAllowsCombiningYRepeatsWith3Bits() )
                   {
-                    exportElementType = "LD_ELEMENT_LINE_H_REPEAT";
-                    repeatElement = true;
+                    if ( ProjectTypeAllowsFlagsInXPos() )
+                    {
+                      xPos |= ( screenElement.Flags << 6 );
+                    }
+
+                    if ( elementName == prevElementName )
+                    {
+                      yPos |= 0x80;
+                      exportData = xPos.ToString() + "," + yPos.ToString() + "," + screenElement.Repeats.ToString() + "\r\n";
+                    }
+                    else
+                    {
+                      exportData = xPos.ToString() + "," + yPos.ToString() + "," + screenElement.Repeats.ToString() + "," + elementName + "\r\n";
+                    }
                   }
                   else
                   {
-                    exportElementType = "LD_ELEMENT_LINE_H";
-                  }
+                    bool  repeatElement = false;
+                    if ( ( ProjectTypeSupportsElementLineRepeat() )
+                    &&   ( elementName == prevElementName ) )
+                    {
+                      exportElementType = "LD_ELEMENT_LINE_H_REPEAT";
+                      repeatElement = true;
+                    }
+                    else
+                    {
+                      exportElementType = "LD_ELEMENT_LINE_H";
+                    }
 
-                  if ( ( ProjectTypeAllowsMoreThan256Elements() )
-                  &&   ( elementUseIndex >= 256 ) )
-                  {
-                    xPos |= 0x40;
-                    elementName = "( " + elementName + " & $ff )";
-                  }
-                  if ( ProjectTypeAllowsFlagsInXPos() )
-                  {
-                    xPos |= ( screenElement.Flags << 6 );
-                  }
+                    if ( ( ProjectTypeAllowsMoreThan256Elements() )
+                    &&   ( elementUseIndex >= 256 ) )
+                    {
+                      xPos |= 0x40;
+                      elementName = "( " + elementName + " & $ff )";
+                    }
+                    if ( ProjectTypeAllowsFlagsInXPos() )
+                    {
+                      xPos |= ( screenElement.Flags << 6 );
+                    }
                   
 
-                  if ( screenElement.Repeats <= 7 )
-                  {
-                    int combinedYRepeats = yPos + ( screenElement.Repeats << 5 );
-                    exportData = xPos.ToString() + "," + combinedYRepeats.ToString();
-                  }
-                  else
-                  {
-                    exportData = xPos.ToString() + "," + screenElement.Y.ToString() + "," + screenElement.Repeats.ToString();
-                  }
+                    if ( screenElement.Repeats <= 7 )
+                    {
+                      int combinedYRepeats = yPos + ( screenElement.Repeats << 5 );
+                      exportData = xPos.ToString() + "," + combinedYRepeats.ToString();
+                    }
+                    else
+                    {
+                      exportData = xPos.ToString() + "," + screenElement.Y.ToString() + "," + screenElement.Repeats.ToString();
+                    }
 
-                  if ( !repeatElement )
-                  {
-                    exportData += "," + elementName + "\r\n";
-                  }
-                  else
-                  {
-                    exportData += "\r\n";
+                    if ( !repeatElement )
+                    {
+                      exportData += "," + elementName + "\r\n";
+                    }
+                    else
+                    {
+                      exportData += "\r\n";
+                    }
                   }
                 }
               }
               break;
             case Project.ScreenElementType.LD_ELEMENT_LINE_V:
               {
-                exportElementType = "LD_ELEMENT_LINE_V";
-
-                int xPos = screenElement.X;
-                int yPos = screenElement.Y;
-
-                if ( !ProjectTypeAllowsCombiningYRepeatsWith3Bits() )
+                if ( ProjectTypeRequiresSortedElementsByX() )
                 {
-                  if ( ProjectTypeAllowsFlagsInXPos() )
-                  {
-                    xPos |= ( screenElement.Flags << 6 );
-                  }
-
+                  int yPos = screenElement.Y;
                   if ( elementName == prevElementName )
                   {
-                    yPos |= 0x80;
-                    exportData = xPos.ToString() + "," + yPos.ToString() + "," + screenElement.Repeats.ToString() + "\r\n";
+                    // FFxxxxxx
+                    exportData = "LDF_PREV_ELEMENT_AREA + " + yPos.ToString() + ", 1," + ( 0x80 | screenElement.Repeats ).ToString() + "\r\n";
                   }
                   else
                   {
-                    exportData = xPos.ToString() + "," + yPos.ToString() + "," + screenElement.Repeats.ToString() + "," + elementName + "\r\n";
+                    exportData = "LDF_ELEMENT_AREA + " + yPos.ToString() + ", 1," + screenElement.Repeats + "," + elementName + "\r\n";
                   }
                 }
                 else
                 {
-                  bool  repeatElement = false;
-                  if ( ( ProjectTypeSupportsElementLineRepeat() )
-                  &&   ( elementName == prevElementName ) )
+                  exportElementType = "LD_ELEMENT_LINE_V";
+
+                  int xPos = screenElement.X;
+                  int yPos = screenElement.Y;
+
+                  if ( !ProjectTypeAllowsCombiningYRepeatsWith3Bits() )
                   {
-                    exportElementType = "LD_ELEMENT_LINE_V_REPEAT";
-                    repeatElement = true;
+                    if ( ProjectTypeAllowsFlagsInXPos() )
+                    {
+                      xPos |= ( screenElement.Flags << 6 );
+                    }
+
+                    if ( elementName == prevElementName )
+                    {
+                      yPos |= 0x80;
+                      exportData = xPos.ToString() + "," + yPos.ToString() + "," + screenElement.Repeats.ToString() + "\r\n";
+                    }
+                    else
+                    {
+                      exportData = xPos.ToString() + "," + yPos.ToString() + "," + screenElement.Repeats.ToString() + "," + elementName + "\r\n";
+                    }
                   }
                   else
                   {
-                    exportElementType = "LD_ELEMENT_LINE_V";
-                  }
+                    bool  repeatElement = false;
+                    if ( ( ProjectTypeSupportsElementLineRepeat() )
+                    && ( elementName == prevElementName ) )
+                    {
+                      exportElementType = "LD_ELEMENT_LINE_V_REPEAT";
+                      repeatElement = true;
+                    }
+                    else
+                    {
+                      exportElementType = "LD_ELEMENT_LINE_V";
+                    }
 
-                  if ( ( ProjectTypeAllowsMoreThan256Elements() )
-                  &&   ( elementUseIndex >= 256 ) )
-                  {
-                    xPos |= 0x40;
-                    elementName = "( " + elementName + " & $ff )";
-                  }
-                  if ( ProjectTypeAllowsFlagsInXPos() )
-                  {
-                    xPos |= ( screenElement.Flags << 6 );
-                  }
+                    if ( ( ProjectTypeAllowsMoreThan256Elements() )
+                    &&   ( elementUseIndex >= 256 ) )
+                    {
+                      xPos |= 0x40;
+                      elementName = "( " + elementName + " & $ff )";
+                    }
+                    if ( ProjectTypeAllowsFlagsInXPos() )
+                    {
+                      xPos |= ( screenElement.Flags << 6 );
+                    }
 
-                  if ( screenElement.Repeats <= 7 )
-                  {
-                    int combinedYRepeats = yPos + ( screenElement.Repeats << 5 );
+                    if ( screenElement.Repeats <= 7 )
+                    {
+                      int combinedYRepeats = yPos + ( screenElement.Repeats << 5 );
 
-                    exportData = xPos.ToString() + "," + combinedYRepeats.ToString();
-                  }
-                  else
-                  {
-                    exportData = xPos.ToString() + "," + screenElement.Y.ToString() + "," + screenElement.Repeats.ToString();
-                  }
+                      exportData = xPos.ToString() + "," + combinedYRepeats.ToString();
+                    }
+                    else
+                    {
+                      exportData = xPos.ToString() + "," + screenElement.Y.ToString() + "," + screenElement.Repeats.ToString();
+                    }
 
-                  if ( !repeatElement )
-                  {
-                    exportData += "," + elementName + "\r\n";
-                  }
-                  else
-                  {
-                    exportData += "\r\n";
+                    if ( !repeatElement )
+                    {
+                      exportData += "," + elementName + "\r\n";
+                    }
+                    else
+                    {
+                      exportData += "\r\n";
+                    }
                   }
                 }
               }
@@ -3864,30 +3867,45 @@ namespace ElementEditor
                 int xPos = screenElement.X;
                 int yPos = screenElement.Y;
 
-                if ( ( ProjectTypeAllowsMoreThan256Elements() )
-                &&   ( elementUseIndex >= 256 ) )
+                if ( ProjectTypeRequiresSortedElementsByX() )
                 {
-                  xPos |= 0x40;
-                  elementName = "( " + elementName + " & $ff )";
-                }
-                if ( ProjectTypeAllowsFlagsInXPos() )
-                {
-                  xPos |= ( screenElement.Flags << 6 );
-                }
-
-                if ( elementName == prevElementName )
-                {
-                  yPos |= 0x80;
-                  exportData = xPos.ToString() + "," + yPos.ToString() + ","
-                            + screenElement.Repeats.ToString() + ","
-                            + screenElement.Repeats2.ToString() + "\r\n";
+                  if ( elementName == prevElementName )
+                  {
+                    // FFxxxxxx
+                    exportData = "LDF_PREV_ELEMENT_AREA + " + yPos.ToString() + "," + screenElement.Repeats + "," + ( 0x80 | screenElement.Repeats2 ).ToString() + "\r\n";
+                  }
+                  else
+                  {
+                    exportData = "LDF_ELEMENT_AREA + " + yPos.ToString() + "," + screenElement.Repeats + "," + screenElement.Repeats2 + "," + elementName + "\r\n";
+                  }
                 }
                 else
                 {
-                  exportData = xPos.ToString() + "," + yPos.ToString() + ","
-                            + screenElement.Repeats.ToString() + ","
-                            + screenElement.Repeats2.ToString() + ","
-                            + elementName + "\r\n";
+                  if ( ( ProjectTypeAllowsMoreThan256Elements() )
+                  &&   ( elementUseIndex >= 256 ) )
+                  {
+                    xPos |= 0x40;
+                    elementName = "( " + elementName + " & $ff )";
+                  }
+                  if ( ProjectTypeAllowsFlagsInXPos() )
+                  {
+                    xPos |= ( screenElement.Flags << 6 );
+                  }
+
+                  if ( elementName == prevElementName )
+                  {
+                    yPos |= 0x80;
+                    exportData = xPos.ToString() + "," + yPos.ToString() + ","
+                              + screenElement.Repeats.ToString() + ","
+                              + screenElement.Repeats2.ToString() + "\r\n";
+                  }
+                  else
+                  {
+                    exportData = xPos.ToString() + "," + yPos.ToString() + ","
+                              + screenElement.Repeats.ToString() + ","
+                              + screenElement.Repeats2.ToString() + ","
+                              + elementName + "\r\n";
+                  }
                 }
               }
               break;
@@ -4023,7 +4041,14 @@ namespace ElementEditor
             case Project.ScreenElementType.LD_OBJECT:
               if ( ProjectTypeHasCompactedObjects() )
               {
-                exportData = "LD_OBJECT | " + screenElement.Object.TemplateIndex.ToString() + ", " + screenElement.X.ToString() + System.Environment.NewLine;
+                if ( ProjectTypeRequiresSortedElementsByX() )
+                {
+                  exportData = "LD_OBJECT | " + screenElement.Object.TemplateIndex.ToString() + ", " + screenElement.Y.ToString() + System.Environment.NewLine;
+                }
+                else
+                {
+                  exportData = "LD_OBJECT | " + screenElement.Object.TemplateIndex.ToString() + ", " + screenElement.X.ToString() + System.Environment.NewLine;
+                }
                 break;
               }
               exportElementType = "LD_OBJECT";
@@ -4280,7 +4305,8 @@ namespace ElementEditor
               prevExportElementType = "";
             }
           }
-          if ( ProjectTypeRequiresSortedElementsByY() )
+          if ( ( ProjectTypeRequiresSortedElementsByX() )
+          ||   ( ProjectTypeRequiresSortedElementsByY() ) )
           {
             result += exportData;
           }
@@ -4314,8 +4340,8 @@ namespace ElementEditor
 
         if ( ProjectTypeAllowsExportOfCustomColors() )
         {
-          int   color1 = ( screen.OverrideMC1 != -1 ? screen.OverrideMC1 : m_Project.Charsets[screen.CharsetIndex].MultiColor1 );
-          int   color2 = ( screen.OverrideMC2 != -1 ? screen.OverrideMC2 : m_Project.Charsets[screen.CharsetIndex].MultiColor2 );
+          int   color1 = ( screen.OverrideMC1 != -1 ? screen.OverrideMC1 : m_Project.Charsets[screen.CharsetIndex].Colors.MultiColor1 );
+          int   color2 = ( screen.OverrideMC2 != -1 ? screen.OverrideMC2 : m_Project.Charsets[screen.CharsetIndex].Colors.MultiColor2 );
 
           result += "          !byte $" + ( ( color1 << 4 ) + color2 ).ToString( "X2" ) + "\r\n";
         }
@@ -4504,6 +4530,19 @@ namespace ElementEditor
 
 
 
+    private List<Project.ScreenElement> SortElementsByX( List<Project.ScreenElement> LevelElements )
+    {
+      GR.Collections.MultiMap<int,Project.ScreenElement>  sortedList = new GR.Collections.MultiMap<int, Project.ScreenElement>();
+
+      foreach ( var element in LevelElements )
+      {
+        sortedList.Add( element.X, element );
+      }
+      return sortedList.Values;
+    }
+
+
+
     private List<Project.ScreenElement> SortElementsByY( List<Project.ScreenElement> LevelElements )
     {
       GR.Collections.MultiMap<int,Project.ScreenElement>  sortedList = new GR.Collections.MultiMap<int, Project.ScreenElement>();
@@ -4513,6 +4552,28 @@ namespace ElementEditor
         sortedList.Add( element.Y, element );
       }
       return sortedList.Values;
+    }
+
+
+
+    private bool ProjectTypeAlwaysRequiresLevelConfig()
+    {
+      if ( m_Project.ProjectType == "MegaSisters" )
+      {
+        return true;
+      }
+      return false;
+    }
+
+
+
+    private bool ProjectTypeRequiresSortedElementsByX()
+    {
+      if ( m_Project.ProjectType == "MegaSisters" )
+      {
+        return true;
+      }
+      return false;
     }
 
 
@@ -4692,9 +4753,9 @@ namespace ElementEditor
               m_DraggedScreenElement.Object.MoveBorderTop = screenElement.Object.MoveBorderTop;
               m_DraggedScreenElement.Object.TemplateIndex = screenElement.Object.TemplateIndex;
               m_DraggedScreenElement.Object.SpriteImage = new GR.Image.MemoryImage( screenElement.Object.SpriteImage );
-              RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[m_DraggedScreenElement.Object.TemplateIndex].StartSprite].Data,
+              RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[m_DraggedScreenElement.Object.TemplateIndex].StartSprite].Tile.Data,
                                   m_DraggedScreenElement.Object.SpriteImage,
-                                  m_SpriteProject.Sprites[m_Project.ObjectTemplates[m_DraggedScreenElement.Object.TemplateIndex].StartSprite].Multicolor,
+                                  m_SpriteProject.Sprites[m_Project.ObjectTemplates[m_DraggedScreenElement.Object.TemplateIndex].StartSprite].Mode == RetroDevStudio.SpriteMode.COMMODORE_24_X_21_MULTICOLOR,
                                   m_DraggedScreenElement.Object.Color );
 
               item.SubItems[1].Text = m_Project.ObjectTemplates[m_DraggedScreenElement.Object.TemplateIndex].Name;
@@ -5504,7 +5565,7 @@ namespace ElementEditor
       for ( int i = 0; i < 256; ++i )
       {
         RebuildSpriteImage( i, -1 );
-        listSprites.Items.Add( m_SpriteProject.Sprites[i], m_SpriteProject.Sprites[i].Image );
+        listSprites.Items.Add( m_SpriteProject.Sprites[i], m_SpriteProject.Sprites[i].Tile.Image );
       }
       m_Project.SpriteProjectFilename = Filename;
       Modified = false;
@@ -5579,11 +5640,11 @@ namespace ElementEditor
             if ( element.Object.TemplateIndex >= selectedIndex )
             {
               --element.Object.TemplateIndex;
-              element.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Image );
+              element.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile.Image );
 
-              RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Data,
+              RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile.Data,
                                   element.Object.SpriteImage,
-                                  m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Multicolor,
+                                  m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Mode == RetroDevStudio.SpriteMode.COMMODORE_24_X_21_MULTICOLOR,
                                   element.Object.Color );
             }
           }
@@ -5672,11 +5733,11 @@ namespace ElementEditor
         screenElement.Object.TemplateIndex = comboObjects.SelectedIndex;
         if ( screenElement.Object.SpriteImage == null )
         {
-          screenElement.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Image );
+          screenElement.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Tile.Image );
         }
-        RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Data,
+        RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Tile.Data,
                             screenElement.Object.SpriteImage,
-                            m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Multicolor,
+                            m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Mode == RetroDevStudio.SpriteMode.COMMODORE_24_X_21_MULTICOLOR,
                             screenElement.Object.Color );
 
         Modified = true;
@@ -6145,8 +6206,8 @@ namespace ElementEditor
         Modified = true;
 
         SetActiveScreenCharset( m_Project.Charsets[comboScreenCharset.SelectedIndex],
-                                m_CurrentScreen.OverrideMC1 != -1 ? m_CurrentScreen.OverrideMC1 : m_Project.Charsets[comboElementCharset.SelectedIndex].MultiColor1,
-                                m_CurrentScreen.OverrideMC2 != -1 ? m_CurrentScreen.OverrideMC2 : m_Project.Charsets[comboElementCharset.SelectedIndex].MultiColor2,
+                                m_CurrentScreen.OverrideMC1 != -1 ? m_CurrentScreen.OverrideMC1 : m_Project.Charsets[comboElementCharset.SelectedIndex].Colors.MultiColor1,
+                                m_CurrentScreen.OverrideMC2 != -1 ? m_CurrentScreen.OverrideMC2 : m_Project.Charsets[comboElementCharset.SelectedIndex].Colors.MultiColor2,
                                 m_Project.CharsetProjects[comboScreenCharset.SelectedIndex].Multicolor );
       }
     }
@@ -6169,8 +6230,8 @@ namespace ElementEditor
         multiColor = m_Project.CharsetProjects[comboScreenCharset.SelectedIndex].Multicolor;
       }
       SetActiveElementCharset( m_Project.Charsets[comboElementCharset.SelectedIndex],
-                               m_Project.Charsets[comboElementCharset.SelectedIndex].MultiColor1,
-                               m_Project.Charsets[comboElementCharset.SelectedIndex].MultiColor2,
+                               m_Project.Charsets[comboElementCharset.SelectedIndex].Colors.MultiColor1,
+                               m_Project.Charsets[comboElementCharset.SelectedIndex].Colors.MultiColor2,
                                multiColor );
     }
 
@@ -6218,14 +6279,14 @@ namespace ElementEditor
       &&   ( !string.IsNullOrEmpty( otherProject.OldCharsetProjectFilename ) ) )
       {
         string fullPath = GR.Path.Append( GR.Path.RemoveFileSpec( openFile.FileName ), otherProject.OldCharsetProjectFilename );
-        Types.CharsetProject charSet = OpenCharsetProject( fullPath );
+        CharsetProject charSet = OpenCharsetProject( fullPath );
         if ( charSet != null )
         {
           charSet.Name = fullPath;
           string shortName = System.IO.Path.GetFileNameWithoutExtension( fullPath );
           m_Project.Charsets.Add( charSet );
 
-          Types.CharsetProjectInfo info = new ElementEditor.Types.CharsetProjectInfo();
+          CharsetProjectInfo info = new CharsetProjectInfo();
           info.Filename = fullPath;
           info.Multicolor = true;
           m_Project.CharsetProjects.Add( info );
@@ -6239,25 +6300,25 @@ namespace ElementEditor
         for ( int i = 0; i < otherProject.CharsetProjects.Count; ++i )
         {
           string charSetFile = otherProject.CharsetProjects[i].Filename;
-          Types.CharsetProject charSet = OpenCharsetProject( charSetFile );
+          CharsetProject charSet = OpenCharsetProject( charSetFile );
           if ( charSet == null )
           {
             charSetFile = System.IO.Path.Combine( System.IO.Path.GetDirectoryName( openFile.FileName ), System.IO.Path.GetFileName( charSetFile ) );
 
-            Types.CharsetProjectInfo info = new ElementEditor.Types.CharsetProjectInfo();
+            CharsetProjectInfo info = new CharsetProjectInfo();
             info.Filename = charSetFile;
             info.Multicolor = otherProject.CharsetProjects[i].Multicolor;
             m_Project.CharsetProjects.Add( info );
             charSet = OpenCharsetProject( charSetFile );
 
-            Types.CharsetProjectInfo otherInfo = new ElementEditor.Types.CharsetProjectInfo();
+            CharsetProjectInfo otherInfo = new CharsetProjectInfo();
             otherInfo.Filename = charSetFile;
             otherInfo.Multicolor = true;
             otherProject.CharsetProjects.Add( otherInfo );
           }
           else
           {
-            Types.CharsetProjectInfo info = new ElementEditor.Types.CharsetProjectInfo();
+            CharsetProjectInfo info = new CharsetProjectInfo();
             info.Filename = charSetFile;
             info.Multicolor = true;
 
@@ -6267,7 +6328,7 @@ namespace ElementEditor
           otherProject.Charsets.Add( charSet );
         }
       }
-      foreach ( Types.CharsetProject charSet in otherProject.Charsets )
+      foreach ( CharsetProject charSet in otherProject.Charsets )
       {
         comboScreenCharset.Items.Add( System.IO.Path.GetFileNameWithoutExtension( charSet.Name ) );
         comboElementCharset.Items.Add( System.IO.Path.GetFileNameWithoutExtension( charSet.Name ) );
@@ -6303,8 +6364,8 @@ namespace ElementEditor
       if ( m_Project.Charsets.Count > 0 )
       {
         SetActiveElementCharset( m_Project.Charsets[0], 
-                                 m_Project.Charsets[comboElementCharset.SelectedIndex].MultiColor1,
-                                 m_Project.Charsets[comboElementCharset.SelectedIndex].MultiColor2,
+                                 m_Project.Charsets[comboElementCharset.SelectedIndex].Colors.MultiColor1,
+                                 m_Project.Charsets[comboElementCharset.SelectedIndex].Colors.MultiColor2,
                                  m_Project.CharsetProjects[0].Multicolor );
       }
 
@@ -6326,10 +6387,10 @@ namespace ElementEditor
             if ( ( element.Object != null )
             && ( element.Object.TemplateIndex != -1 ) )
             {
-              element.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Image );
-              RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Data,
+              element.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile.Image );
+              RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile.Data,
                                   element.Object.SpriteImage,
-                                  m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Multicolor,
+                                  m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Mode == RetroDevStudio.SpriteMode.COMMODORE_24_X_21_MULTICOLOR,
                                   element.Object.Color );
             }
           }
@@ -6458,14 +6519,15 @@ namespace ElementEditor
         System.Drawing.Brush textBrush = new SolidBrush( e.ForeColor );
         e.Graphics.DrawString( index.ToString(), e.Font, textBrush, textRect );
 
-        Types.CharsetProject charSet = m_Project.Charsets[m_CurrentScreen.CharsetIndex];
+        CharsetProject charSet = m_Project.Charsets[m_CurrentScreen.CharsetIndex];
 
         GR.Image.FastImage    fastImage = new GR.Image.FastImage( 8, 8, System.Drawing.Imaging.PixelFormat.Format8bppIndexed );
         for ( int j = 0; j < 16; ++j )
         {
           fastImage.SetPaletteColor( j, (byte)( ( m_Project.m_ColorValues[j] & 0x00ff0000 ) >> 16 ), (byte)( ( m_Project.m_ColorValues[j] & 0x0000ff00 ) >> 8 ), (byte)( m_Project.m_ColorValues[j] & 0xff ) );
         }
-        fastImage.DrawFromImage( charSet.Characters[index].AllColorImage, 0, 0, comboElementColor.SelectedIndex * 8, 0, 8, 8 );
+
+        CharacterDisplayer.DisplayChar( charSet, index, fastImage, 0, 0, comboColor.SelectedIndex );
         System.Drawing.Rectangle drawRect = new Rectangle( e.Bounds.Location, e.Bounds.Size );
         drawRect.X += 30;
         drawRect.Width = 16;
@@ -6497,14 +6559,15 @@ namespace ElementEditor
         System.Drawing.Brush textBrush = new SolidBrush( e.ForeColor );
         e.Graphics.DrawString( index.ToString(), e.Font, textBrush, textRect );
 
-        Types.CharsetProject charSet = m_Project.Charsets[m_CurrentEditedElement.CharsetIndex];
+        CharsetProject charSet = m_Project.Charsets[m_CurrentEditedElement.CharsetIndex];
 
         GR.Image.FastImage fastImage = new GR.Image.FastImage( 8, 8, System.Drawing.Imaging.PixelFormat.Format8bppIndexed );
         for ( int j = 0; j < 16; ++j )
         {
           fastImage.SetPaletteColor( j, (byte)( ( m_Project.m_ColorValues[j] & 0x00ff0000 ) >> 16 ), (byte)( ( m_Project.m_ColorValues[j] & 0x0000ff00 ) >> 8 ), (byte)( m_Project.m_ColorValues[j] & 0xff ) );
         }
-        fastImage.DrawFromImage( charSet.Characters[index].AllColorImage, 0, 0, comboColor.SelectedIndex * 8, 0, 8, 8 );
+
+        CharacterDisplayer.DisplayChar( charSet, index, fastImage, 0, 0, comboColor.SelectedIndex );
         System.Drawing.Rectangle drawRect = new Rectangle( e.Bounds.Location, e.Bounds.Size );
         drawRect.X += 30;
         drawRect.Width = 16;
@@ -6629,9 +6692,9 @@ namespace ElementEditor
     private void refreshCharsetFileToolStripMenuItem_Click( object sender, EventArgs e )
     {
       int index = 0;
-      foreach ( Types.CharsetProjectInfo info in m_Project.CharsetProjects )
+      foreach ( CharsetProjectInfo info in m_Project.CharsetProjects )
       {
-        Types.CharsetProject charSet = OpenCharsetProject( info.Filename );
+        CharsetProject charSet = OpenCharsetProject( info.Filename );
         m_Project.Charsets[index] = charSet;
         ++index;
       }
@@ -6639,8 +6702,8 @@ namespace ElementEditor
       &&   ( comboElementCharset.SelectedIndex < m_Project.Charsets.Count ) )
       {
         SetActiveElementCharset( m_Project.Charsets[comboElementCharset.SelectedIndex],
-                                 m_Project.Charsets[comboElementCharset.SelectedIndex].MultiColor1,
-                                 m_Project.Charsets[comboElementCharset.SelectedIndex].MultiColor2,
+                                 m_Project.Charsets[comboElementCharset.SelectedIndex].Colors.MultiColor1,
+                                 m_Project.Charsets[comboElementCharset.SelectedIndex].Colors.MultiColor2,
                                  m_Project.CharsetProjects[comboElementCharset.SelectedIndex].Multicolor );
       }
     }
@@ -6664,10 +6727,10 @@ namespace ElementEditor
               if ( ( element.Object != null )
               &&   ( element.Object.TemplateIndex != -1 ) )
               {
-                element.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Image );
-                RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Data,
+                element.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile.Image );
+                RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile.Data,
                                     element.Object.SpriteImage,
-                                    m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Multicolor,
+                                    m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Mode == RetroDevStudio.SpriteMode.COMMODORE_24_X_21_MULTICOLOR,
                                     element.Object.Color );
               }
             }
@@ -6997,14 +7060,16 @@ namespace ElementEditor
         System.Drawing.Brush textBrush = new SolidBrush( e.ForeColor );
         e.Graphics.DrawString( index.ToString(), e.Font, textBrush, textRect );
 
-        Types.CharsetProject charSet = m_Project.Charsets[0];
+        CharsetProject charSet = m_Project.Charsets[0];
 
         GR.Image.FastImage fastImage = new GR.Image.FastImage( 8, 8, System.Drawing.Imaging.PixelFormat.Format8bppIndexed );
         for ( int j = 0; j < 16; ++j )
         {
           fastImage.SetPaletteColor( j, (byte)( ( m_Project.m_ColorValues[j] & 0x00ff0000 ) >> 16 ), (byte)( ( m_Project.m_ColorValues[j] & 0x0000ff00 ) >> 8 ), (byte)( m_Project.m_ColorValues[j] & 0xff ) );
         }
-        fastImage.DrawFromImage( charSet.Characters[index].AllColorImage, 0, 0, comboEmptyColor.SelectedIndex * 8, 0, 8, 8 );
+
+        CharacterDisplayer.DisplayChar( charSet, index, fastImage, 0, 0, comboEmptyColor.SelectedIndex );
+
         System.Drawing.Rectangle drawRect = new Rectangle( e.Bounds.Location, e.Bounds.Size );
         drawRect.X += 30;
         drawRect.Width = 16;
@@ -7589,8 +7654,8 @@ namespace ElementEditor
           &&   ( comboElementCharset.SelectedIndex < m_Project.Charsets.Count ) )
           {
             SetActiveElementCharset( m_Project.Charsets[comboElementCharset.SelectedIndex],
-                                     m_Project.Charsets[comboElementCharset.SelectedIndex].MultiColor1,
-                                     m_Project.Charsets[comboElementCharset.SelectedIndex].MultiColor2,
+                                     m_Project.Charsets[comboElementCharset.SelectedIndex].Colors.MultiColor1,
+                                     m_Project.Charsets[comboElementCharset.SelectedIndex].Colors.MultiColor2,
                                      m_Project.CharsetProjects[comboElementCharset.SelectedIndex].Multicolor );
           }
           Modified = true;
@@ -7726,8 +7791,8 @@ namespace ElementEditor
           &&   ( comboElementCharset.SelectedIndex < m_Project.Charsets.Count ) )
           {
             SetActiveElementCharset( m_Project.Charsets[comboElementCharset.SelectedIndex],
-                                   m_CurrentScreen.OverrideMC1 != -1 ? m_CurrentScreen.OverrideMC1 : m_Project.Charsets[comboElementCharset.SelectedIndex].MultiColor1,
-                                   m_CurrentScreen.OverrideMC2 != -1 ? m_CurrentScreen.OverrideMC2 : m_Project.Charsets[comboElementCharset.SelectedIndex].MultiColor2,
+                                   m_CurrentScreen.OverrideMC1 != -1 ? m_CurrentScreen.OverrideMC1 : m_Project.Charsets[comboElementCharset.SelectedIndex].Colors.MultiColor1,
+                                   m_CurrentScreen.OverrideMC2 != -1 ? m_CurrentScreen.OverrideMC2 : m_Project.Charsets[comboElementCharset.SelectedIndex].Colors.MultiColor2,
                                    m_Project.CharsetProjects[comboElementCharset.SelectedIndex].Multicolor );
           }
           Modified = true;
@@ -7750,8 +7815,8 @@ namespace ElementEditor
           &&   ( comboElementCharset.SelectedIndex < m_Project.Charsets.Count ) )
           {
             SetActiveElementCharset( m_Project.Charsets[comboElementCharset.SelectedIndex], 
-                                   m_CurrentScreen.OverrideMC1 != -1 ? m_CurrentScreen.OverrideMC1 : m_Project.Charsets[comboElementCharset.SelectedIndex].MultiColor1,
-                                   m_CurrentScreen.OverrideMC2 != -1 ? m_CurrentScreen.OverrideMC2 : m_Project.Charsets[comboElementCharset.SelectedIndex].MultiColor2,
+                                   m_CurrentScreen.OverrideMC1 != -1 ? m_CurrentScreen.OverrideMC1 : m_Project.Charsets[comboElementCharset.SelectedIndex].Colors.MultiColor1,
+                                   m_CurrentScreen.OverrideMC2 != -1 ? m_CurrentScreen.OverrideMC2 : m_Project.Charsets[comboElementCharset.SelectedIndex].Colors.MultiColor2,
                                    m_Project.CharsetProjects[comboElementCharset.SelectedIndex].Multicolor );
           }
           Modified = true;
@@ -7775,7 +7840,7 @@ namespace ElementEditor
           if ( ( m_CurrentScreen.CharsetIndex >= 0 )
           &&   ( m_CurrentScreen.CharsetIndex < m_Project.Charsets.Count ) )
           {
-            drawIndex = m_Project.Charsets[m_CurrentScreen.CharsetIndex].MultiColor1;
+            drawIndex = m_Project.Charsets[m_CurrentScreen.CharsetIndex].Colors.MultiColor1;
           }
         }
       }
@@ -7825,7 +7890,7 @@ namespace ElementEditor
       {
         if ( m_CurrentScreen != null )
         {
-          drawIndex = m_Project.Charsets[m_CurrentScreen.CharsetIndex].MultiColor2;
+          drawIndex = m_Project.Charsets[m_CurrentScreen.CharsetIndex].Colors.MultiColor2;
         }
       }
       if ( ( drawIndex >= 0 )

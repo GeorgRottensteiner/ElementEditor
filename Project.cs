@@ -1,4 +1,5 @@
-﻿using System;
+﻿using C64Studio.Formats;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -276,7 +277,7 @@ namespace ElementEditor
 
 
 
-    public List<Types.CharsetProject>         Charsets = new List<ElementEditor.Types.CharsetProject>();
+    public List<CharsetProject>         Charsets = new List<CharsetProject>();
     public string               OldCharsetProjectFilename = "";
     public string               SpriteProjectFilename = "";
     public string               ExportFilename = "";
@@ -287,7 +288,7 @@ namespace ElementEditor
     public List<Screen>         Screens = new List<Screen>();
     public List<ObjectTemplate> ObjectTemplates = new List<ObjectTemplate>();
     public string               ProjectType = "Soulless";
-    public List<Types.CharsetProjectInfo> CharsetProjects = new List<Types.CharsetProjectInfo>();
+    public List<CharsetProjectInfo> CharsetProjects = new List<CharsetProjectInfo>();
     public byte                 EmptyChar = 0;
     public byte                 EmptyColor = 0;
     public List<Region>         Regions = new List<Region>();
@@ -384,7 +385,7 @@ namespace ElementEditor
             break;
           case (ushort)ChunkType.CHARSET_INFO:
             {
-              Types.CharsetProjectInfo info = new ElementEditor.Types.CharsetProjectInfo();
+              CharsetProjectInfo info = new CharsetProjectInfo();
 
               info.Filename = memReader.ReadString();
               info.Multicolor = ( memReader.ReadUInt8() == 1 );
@@ -692,7 +693,7 @@ namespace ElementEditor
 
 
       int     charSetIndex = 0;
-      foreach ( Types.CharsetProjectInfo info in CharsetProjects )
+      foreach ( CharsetProjectInfo info in CharsetProjects )
       {
         GR.IO.FileChunk chunkCharset = new GR.IO.FileChunk( (ushort)ChunkType.CHARSET_INFO );
         chunkCharset.AppendString( info.Filename );

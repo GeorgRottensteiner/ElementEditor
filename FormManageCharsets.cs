@@ -1,4 +1,5 @@
-﻿using System;
+﻿using C64Studio.Formats;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -19,7 +20,7 @@ namespace ElementEditor
       main = Main;
       InitializeComponent();
 
-      foreach ( ElementEditor.Types.CharsetProjectInfo charset in main.m_Project.CharsetProjects )
+      foreach ( CharsetProjectInfo charset in main.m_Project.CharsetProjects )
       {
         string shortName = System.IO.Path.GetFileNameWithoutExtension( charset.Filename );
         listCharsets.Items.Add( shortName );
@@ -46,14 +47,14 @@ namespace ElementEditor
 
       if ( openFile.ShowDialog() == DialogResult.OK )
       {
-        Types.CharsetProject charSet = main.OpenCharsetProject( openFile.FileName );
+        CharsetProject charSet = main.OpenCharsetProject( openFile.FileName );
         if ( charSet != null )
         {
           charSet.Name = openFile.FileName;
           string shortName = System.IO.Path.GetFileNameWithoutExtension( openFile.FileName );
           main.m_Project.Charsets.Add( charSet );
 
-          Types.CharsetProjectInfo info = new ElementEditor.Types.CharsetProjectInfo();
+          CharsetProjectInfo info = new CharsetProjectInfo();
           info.Filename = charSet.Name;
           info.Multicolor = true;
           main.m_Project.CharsetProjects.Add( info );
@@ -80,11 +81,11 @@ namespace ElementEditor
       int charsetIndex = listCharsets.SelectedIndex;
       if ( charsetIndex != -1 )
       {
-        Types.CharsetProject charSet = main.OpenCharsetProject( main.m_Project.CharsetProjects[charsetIndex].Filename );
+        CharsetProject charSet = main.OpenCharsetProject( main.m_Project.CharsetProjects[charsetIndex].Filename );
         main.m_Project.Charsets[charsetIndex] = charSet;
         main.SetActiveElementCharset( main.m_Project.Charsets[main.comboElementCharset.SelectedIndex],
-                                      main.m_Project.Charsets[main.comboElementCharset.SelectedIndex].MultiColor1,
-                                      main.m_Project.Charsets[main.comboElementCharset.SelectedIndex].MultiColor2,
+                                      main.m_Project.Charsets[main.comboElementCharset.SelectedIndex].Colors.MultiColor1,
+                                      main.m_Project.Charsets[main.comboElementCharset.SelectedIndex].Colors.MultiColor2,
                                       main.m_Project.CharsetProjects[main.comboElementCharset.SelectedIndex].Multicolor );
       }
     }
@@ -103,7 +104,7 @@ namespace ElementEditor
 
         if ( openFile.ShowDialog() == DialogResult.OK )
         {
-          Types.CharsetProject charSet = main.OpenCharsetProject( openFile.FileName );
+          CharsetProject charSet = main.OpenCharsetProject( openFile.FileName );
           if ( charSet != null )
           {
             charSet.Name = openFile.FileName;
@@ -115,8 +116,8 @@ namespace ElementEditor
             listCharsets.Items[charsetIndex] = shortName;
             main.Modified = true;
             main.SetActiveElementCharset( main.m_Project.Charsets[main.comboElementCharset.SelectedIndex],
-                                          main.m_Project.Charsets[main.comboElementCharset.SelectedIndex].MultiColor1,
-                                          main.m_Project.Charsets[main.comboElementCharset.SelectedIndex].MultiColor2, 
+                                          main.m_Project.Charsets[main.comboElementCharset.SelectedIndex].Colors.MultiColor1,
+                                          main.m_Project.Charsets[main.comboElementCharset.SelectedIndex].Colors.MultiColor2, 
                                           main.m_Project.CharsetProjects[main.comboElementCharset.SelectedIndex].Multicolor );
           }
         }

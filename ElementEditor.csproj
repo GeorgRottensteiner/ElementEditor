@@ -57,7 +57,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CharacterDisplayer.cs" />
     <Compile Include="CharsetProject.cs" />
+    <Compile Include="ColorSettings.cs" />
+    <Compile Include="ColorType.cs" />
+    <Compile Include="FileChunkConstants.cs" />
     <Compile Include="FormCheckResult.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -76,6 +80,10 @@
     <Compile Include="FormManageCharsets.Designer.cs">
       <DependentUpon>FormManageCharsets.cs</DependentUpon>
     </Compile>
+    <Compile Include="GraphicTile.cs" />
+    <Compile Include="GraphicTileMode.cs" />
+    <Compile Include="Lookup.cs" />
+    <Compile Include="MachineType.cs" />
     <Compile Include="P:\Common#\Collections\Map.cs">
       <Link>Common\Map.cs</Link>
     </Compile>
@@ -145,6 +153,11 @@
     <Compile Include="P:\Common#\String\Path.cs">
       <Link>Common\Path.cs</Link>
     </Compile>
+    <Compile Include="Palette.cs" />
+    <Compile Include="PaletteC64.cs" />
+    <Compile Include="PaletteManager.cs" />
+    <Compile Include="PaletteMega65.cs" />
+    <Compile Include="PaletteVC20.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Project.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -177,7 +190,12 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="SpriteDisplayer.cs" />
+    <Compile Include="SpriteDisplayMode.cs" />
+    <Compile Include="SpriteMode.cs" />
     <Compile Include="SpriteProject.cs" />
+    <Compile Include="TextCharMode.cs" />
+    <Compile Include="TextMode.cs" />
     <Compile Include="Types.cs" />
   </ItemGroup>
   <ItemGroup>
