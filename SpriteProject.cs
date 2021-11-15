@@ -34,8 +34,8 @@ namespace C64Studio.Formats
 
       public SpriteData( SpriteData Other )
       {
-        Mode = Other.Mode;
-        Tile = new GraphicTile( Other.Tile );
+        Mode   = Other.Mode;
+        Tile   = new GraphicTile( Other.Tile );
       }
     }
 
@@ -61,8 +61,9 @@ namespace C64Studio.Formats
 
 
 
-    public List<SpriteData>      Sprites = new List<SpriteData>( 256 );
-    public List<Layer>           SpriteLayers = new List<Layer>();
+    public List<SpriteData>       Sprites = new List<SpriteData>( 256 );
+    public List<Layer>            SpriteLayers = new List<Layer>();
+    public List<Palette>          Palettes = new List<Palette>();
 
     public ColorSettings  Colors = new ColorSettings();
 
@@ -86,6 +87,7 @@ namespace C64Studio.Formats
         Sprites.Add( new SpriteData( Colors ) );
         PaletteManager.ApplyPalette( Sprites[i].Tile.Image );
       }
+      Palettes.Add( Colors.Palette );
     }
 
 
@@ -113,19 +115,14 @@ namespace C64Studio.Formats
       chunkScreenMultiColorData.AppendI32( (byte)Colors.MultiColor2 );
       chunkProject.Append( chunkScreenMultiColorData.ToBuffer() );
 
-      var chunkPalette = new GR.IO.FileChunk( RetroDevStudio.FileChunkConstants.PALETTE );
-      chunkPalette.AppendI32( Colors.Palette.NumColors );
-      for ( int i = 0; i < Colors.Palette.NumColors; ++i )
-      {
-        chunkPalette.AppendU32( Colors.Palette.ColorValues[i] );
-      }
-      chunkProject.Append( chunkPalette.ToBuffer() );
+      chunkProject.Append( Colors.Palette.ToBuffer() );
 
       foreach ( var sprite in Sprites )
       {
         GR.IO.FileChunk chunkSprite = new GR.IO.FileChunk( FileChunkConstants.SPRITESET_SPRITE );
-        chunkSprite.AppendI32( (byte)sprite.Mode );
-        chunkSprite.AppendI32( (byte)sprite.Tile.CustomColor );
+        chunkSprite.AppendI32( (int)sprite.Mode );
+        chunkSprite.AppendI32( (int)sprite.Tile.Mode );
+        chunkSprite.AppendI32( (int)sprite.Tile.CustomColor );
         chunkSprite.AppendI32( sprite.Tile.Width );
         chunkSprite.AppendI32( sprite.Tile.Height );
         chunkSprite.AppendI32( (int)sprite.Tile.Data.Length );
@@ -226,7 +223,7 @@ namespace C64Studio.Formats
         }
         projectFile.Append( chunkLayer.ToBuffer() );
       }*/
-
+      
       return projectFile;
     }
 
@@ -266,11 +263,11 @@ namespace C64Studio.Formats
                   switch ( subChunk.Type )
                   {
                     case FileChunkConstants.SPRITESET_INFO:
-                      TotalNumberOfSprites = subChunkReader.ReadInt32();
-                      Name = subChunkReader.ReadString();
-                      ExportFilename = subChunkReader.ReadString();
-                      ExportStartIndex = subChunkReader.ReadInt32();
-                      ExportSpriteCount = subChunkReader.ReadInt32();
+                      TotalNumberOfSprites  = subChunkReader.ReadInt32();
+                      Name                  = subChunkReader.ReadString();
+                      ExportFilename        = subChunkReader.ReadString();
+                      ExportStartIndex      = subChunkReader.ReadInt32();
+                      ExportSpriteCount     = subChunkReader.ReadInt32();
                       break;
                     case FileChunkConstants.MULTICOLOR_DATA:
                       Mode = (SpriteProjectMode)subChunkReader.ReadInt32();
@@ -280,12 +277,13 @@ namespace C64Studio.Formats
                       break;
                     case FileChunkConstants.PALETTE:
                       {
-                        Colors.Palette = new Palette( subChunkReader.ReadInt32() );
-                        for ( int i = 0; i < Colors.Palette.NumColors; ++i )
+                        var pal = Palette.Read( subChunkReader );
+
+                        Palettes.Add( pal );
+                        if ( Palettes.Count == 0 )
                         {
-                          Colors.Palette.ColorValues[i] = subChunkReader.ReadUInt32();
+                          Colors.Palette = pal;
                         }
-                        Colors.Palette.CreateBrushes();
                       }
                       break;
                     case FileChunkConstants.SPRITESET_SPRITE:
@@ -293,6 +291,7 @@ namespace C64Studio.Formats
                         var sprite = new SpriteData( Colors );
 
                         sprite.Mode = (SpriteMode)subChunkReader.ReadInt32();
+                        sprite.Tile.Mode = (GraphicTileMode)subChunkReader.ReadInt32();
                         sprite.Tile.CustomColor = subChunkReader.ReadInt32();
                         sprite.Tile.Width = subChunkReader.ReadInt32();
                         sprite.Tile.Height = subChunkReader.ReadInt32();
@@ -437,9 +436,9 @@ namespace C64Studio.Formats
                 }
                 else if ( subChunk.Type == FileChunkConstants.SPRITESET_LAYER_INFO )
                 {
-                  layer.Name = subChunkReader.ReadString();
+                  layer.Name            = subChunkReader.ReadString();
                   layer.BackgroundColor = subChunkReader.ReadUInt8();
-                  layer.DelayMS = subChunkReader.ReadInt32();
+                  layer.DelayMS         = subChunkReader.ReadInt32();
                 }
               }
             }

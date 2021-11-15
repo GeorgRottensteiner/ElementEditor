@@ -665,6 +665,7 @@ namespace ElementEditor
                 obj.Behaviours[newIndex].Name = behaviourName;
                 obj.Behaviours[newIndex].Value = behaviourIndex;
               }
+              obj.Index = memReader.ReadInt32();
 
               ObjectTemplates.Add( obj );
             }
@@ -733,6 +734,7 @@ namespace ElementEditor
           chunkObj.AppendI32( behaviourPair.Value.Value );
           chunkObj.AppendString( behaviourPair.Value.Name );
         }
+        chunkObj.AppendI32( obj.Index );
         resultingFile.Append( chunkObj.ToBuffer() );
       }
 

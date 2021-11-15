@@ -319,15 +319,22 @@ namespace C64Studio.Formats
         {
           Characters[i].Tile.CustomColor = memIn.ReadInt32();
         }
+
+        bool    hasMC = false;
         for ( int i = 0; i < TotalNumberOfCharacters; ++i )
         {
-          memIn.ReadUInt8();
-          //Characters[i].Mode = (TextCharMode)memIn.ReadUInt8();
+          Characters[i].Tile.Mode = (GraphicTileMode)memIn.ReadUInt8();
+          if ( Characters[i].Tile.Mode == GraphicTileMode.COMMODORE_MULTICOLOR )
+          {
+            hasMC = true;
+          }
+          //Debug.Log( "Tile Mode " + memIn.ReadUInt8() );
+          //memIn.ReadUInt8();
+          //Characters[i].Tile.Mode = GraphicTileMode.Mode = (TextCharMode)memIn.ReadUInt8();
         }
         Colors.BackgroundColor  = memIn.ReadInt32();
         Colors.MultiColor1      = memIn.ReadInt32();
         Colors.MultiColor2      = memIn.ReadInt32();
-
 
         for ( int i = 0; i < TotalNumberOfCharacters; ++i )
         {
@@ -409,6 +416,11 @@ namespace C64Studio.Formats
         }
 
         Mode = (TextCharMode)memIn.ReadInt32();
+
+        if ( hasMC )
+        {
+          Mode = TextCharMode.COMMODORE_MULTICOLOR;
+        }
       }
       else if ( version == 2 )
       {
@@ -461,10 +473,10 @@ namespace C64Studio.Formats
                 case FileChunkConstants.CHARSET_CHAR:
                   {
                     var charData = new CharData();
-                    charData.Tile.Mode = Lookup.GraphicTileModeFromTextCharMode( Mode );
 
                     subMemIn.ReadInt32(); // was TextCharMode
                     charData.Tile.CustomColor = subMemIn.ReadInt32();
+                    charData.Tile.Mode = Lookup.GraphicTileModeFromTextCharMode( Mode, charData.Tile.CustomColor );
                     charData.Category = subMemIn.ReadInt32();
 
                     int dataLength = subMemIn.ReadInt32();

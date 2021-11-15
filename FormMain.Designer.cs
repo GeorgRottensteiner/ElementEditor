@@ -29,8 +29,8 @@
     private void InitializeComponent()
     {
       this.components = new System.ComponentModel.Container();
-      GR.Image.FastImage fastImage2 = new GR.Image.FastImage();
       GR.Image.FastImage fastImage1 = new GR.Image.FastImage();
+      GR.Image.FastImage fastImage2 = new GR.Image.FastImage();
       GR.Image.FastImage fastImage3 = new GR.Image.FastImage();
       System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
       this.tabElements = new System.Windows.Forms.TabPage();
@@ -58,6 +58,8 @@
       this.editElementHeight = new System.Windows.Forms.TextBox();
       this.editElementWidth = new System.Windows.Forms.TextBox();
       this.editElementName = new System.Windows.Forms.TextBox();
+      this.pictureCharset = new GR.Forms.ImageListbox();
+      this.pictureElement = new GR.Forms.FastPictureBox();
       this.listAvailableElements = new System.Windows.Forms.ListBox();
       this.tabScreens = new System.Windows.Forms.TabPage();
       this.editObjectOptionalOn = new System.Windows.Forms.TextBox();
@@ -70,6 +72,7 @@
       this.scrollScreenV = new System.Windows.Forms.VScrollBar();
       this.comboScreenCharset = new System.Windows.Forms.ComboBox();
       this.scrollScreen = new System.Windows.Forms.HScrollBar();
+      this.pictureEditor = new GR.Forms.FastPictureBox();
       this.comboElementChar = new System.Windows.Forms.ComboBox();
       this.comboElementColor = new System.Windows.Forms.ComboBox();
       this.comboObjectOptional = new System.Windows.Forms.ComboBox();
@@ -144,6 +147,7 @@
       this.labelSpriteNo = new System.Windows.Forms.Label();
       this.btnDeleteObject = new System.Windows.Forms.Button();
       this.btnNewObject = new System.Windows.Forms.Button();
+      this.listSprites = new GR.Forms.ImageListbox();
       this.label11 = new System.Windows.Forms.Label();
       this.label10 = new System.Windows.Forms.Label();
       this.editObjectTemplateName = new System.Windows.Forms.TextBox();
@@ -173,6 +177,7 @@
       this.columnHeader12 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
       this.columnHeader13 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
       this.columnHeader14 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+      this.pictureMap = new GR.Forms.FastPictureBox();
       this.tabExport = new System.Windows.Forms.TabPage();
       this.groupBox2 = new System.Windows.Forms.GroupBox();
       this.editExportPrefix = new System.Windows.Forms.TextBox();
@@ -211,13 +216,11 @@
       this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
       this.toolStrip1 = new System.Windows.Forms.ToolStrip();
       this.toolStripButton1 = new System.Windows.Forms.ToolStripButton();
-      this.pictureEditor = new GR.Forms.FastPictureBox();
-      this.pictureCharset = new GR.Forms.ImageListbox();
-      this.pictureElement = new GR.Forms.FastPictureBox();
-      this.listSprites = new GR.Forms.ImageListbox();
-      this.pictureMap = new GR.Forms.FastPictureBox();
+      this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.tabElements.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.pictureElement)).BeginInit();
       this.tabScreens.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.pictureEditor)).BeginInit();
       this.tabMain.SuspendLayout();
       this.tabObjects.SuspendLayout();
       this.tabRegions.SuspendLayout();
@@ -225,14 +228,12 @@
       this.groupRegionScreenConfig.SuspendLayout();
       this.groupRegionContent.SuspendLayout();
       this.groupRegions.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.pictureMap)).BeginInit();
       this.tabExport.SuspendLayout();
       this.groupBox2.SuspendLayout();
       this.groupBox1.SuspendLayout();
       this.menuStrip1.SuspendLayout();
       this.toolStrip1.SuspendLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.pictureEditor)).BeginInit();
-      ((System.ComponentModel.ISupportInitialize)(this.pictureElement)).BeginInit();
-      ((System.ComponentModel.ISupportInitialize)(this.pictureMap)).BeginInit();
       this.SuspendLayout();
       // 
       // tabElements
@@ -493,6 +494,42 @@
       this.editElementName.TabIndex = 1;
       this.editElementName.TextChanged += new System.EventHandler(this.editElementName_TextChanged);
       // 
+      // pictureCharset
+      // 
+      this.pictureCharset.AutoScroll = true;
+      this.pictureCharset.AutoScrollHorizontalMaximum = 100;
+      this.pictureCharset.AutoScrollHorizontalMinimum = 0;
+      this.pictureCharset.AutoScrollHPos = 0;
+      this.pictureCharset.AutoScrollVerticalMaximum = 100;
+      this.pictureCharset.AutoScrollVerticalMinimum = 0;
+      this.pictureCharset.AutoScrollVPos = 0;
+      this.pictureCharset.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+      this.pictureCharset.EnableAutoScrollHorizontal = true;
+      this.pictureCharset.EnableAutoScrollVertical = true;
+      this.pictureCharset.HottrackColor = ((uint)(2151694591u));
+      this.pictureCharset.ItemHeight = 13;
+      this.pictureCharset.ItemWidth = 196;
+      this.pictureCharset.Location = new System.Drawing.Point(406, 127);
+      this.pictureCharset.Name = "pictureCharset";
+      this.pictureCharset.PixelFormat = System.Drawing.Imaging.PixelFormat.DontCare;
+      this.pictureCharset.SelectedIndex = -1;
+      this.pictureCharset.Size = new System.Drawing.Size(260, 260);
+      this.pictureCharset.TabIndex = 10;
+      this.pictureCharset.VisibleAutoScrollHorizontal = false;
+      this.pictureCharset.VisibleAutoScrollVertical = false;
+      // 
+      // pictureElement
+      // 
+      this.pictureElement.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+      this.pictureElement.DisplayPage = fastImage1;
+      this.pictureElement.Image = null;
+      this.pictureElement.Location = new System.Drawing.Point(672, 127);
+      this.pictureElement.Name = "pictureElement";
+      this.pictureElement.Size = new System.Drawing.Size(336, 336);
+      this.pictureElement.TabIndex = 4;
+      this.pictureElement.TabStop = false;
+      this.pictureElement.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureElement_MouseDown);
+      // 
       // listAvailableElements
       // 
       this.listAvailableElements.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -683,6 +720,20 @@
       this.scrollScreen.Size = new System.Drawing.Size(644, 16);
       this.scrollScreen.TabIndex = 12;
       this.scrollScreen.ValueChanged += new System.EventHandler(this.scrollScreen_ValueChanged);
+      // 
+      // pictureEditor
+      // 
+      this.pictureEditor.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+      this.pictureEditor.DisplayPage = fastImage2;
+      this.pictureEditor.Image = null;
+      this.pictureEditor.Location = new System.Drawing.Point(368, 6);
+      this.pictureEditor.Name = "pictureEditor";
+      this.pictureEditor.Size = new System.Drawing.Size(644, 404);
+      this.pictureEditor.TabIndex = 3;
+      this.pictureEditor.TabStop = false;
+      this.pictureEditor.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureEditor_MouseDown);
+      this.pictureEditor.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pictureEditor_MouseMove);
+      this.pictureEditor.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pictureEditor_MouseUp);
       // 
       // comboElementChar
       // 
@@ -1363,6 +1414,7 @@
             this.columnHeader10,
             this.columnHeader11});
       this.listObjectBehaviours.FullRowSelect = true;
+      this.listObjectBehaviours.HideSelection = false;
       this.listObjectBehaviours.Location = new System.Drawing.Point(513, 92);
       this.listObjectBehaviours.Name = "listObjectBehaviours";
       this.listObjectBehaviours.Size = new System.Drawing.Size(251, 115);
@@ -1409,6 +1461,30 @@
       this.btnNewObject.Text = "New Object";
       this.btnNewObject.UseVisualStyleBackColor = true;
       this.btnNewObject.Click += new System.EventHandler(this.btnNewObject_Click);
+      // 
+      // listSprites
+      // 
+      this.listSprites.AutoScroll = true;
+      this.listSprites.AutoScrollHorizontalMaximum = 100;
+      this.listSprites.AutoScrollHorizontalMinimum = 0;
+      this.listSprites.AutoScrollHPos = 0;
+      this.listSprites.AutoScrollVerticalMaximum = 100;
+      this.listSprites.AutoScrollVerticalMinimum = 0;
+      this.listSprites.AutoScrollVPos = 0;
+      this.listSprites.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+      this.listSprites.EnableAutoScrollHorizontal = true;
+      this.listSprites.EnableAutoScrollVertical = true;
+      this.listSprites.HottrackColor = ((uint)(2151694591u));
+      this.listSprites.ItemHeight = 13;
+      this.listSprites.ItemWidth = 200;
+      this.listSprites.Location = new System.Drawing.Point(204, 76);
+      this.listSprites.Name = "listSprites";
+      this.listSprites.PixelFormat = System.Drawing.Imaging.PixelFormat.DontCare;
+      this.listSprites.SelectedIndex = -1;
+      this.listSprites.Size = new System.Drawing.Size(303, 311);
+      this.listSprites.TabIndex = 5;
+      this.listSprites.VisibleAutoScrollHorizontal = false;
+      this.listSprites.VisibleAutoScrollVertical = false;
       // 
       // label11
       // 
@@ -1683,6 +1759,7 @@
             this.columnHeader13,
             this.columnHeader14});
       this.listRegions.FullRowSelect = true;
+      this.listRegions.HideSelection = false;
       this.listRegions.Location = new System.Drawing.Point(3, 3);
       this.listRegions.Name = "listRegions";
       this.listRegions.Size = new System.Drawing.Size(494, 255);
@@ -1705,6 +1782,17 @@
       // 
       this.columnHeader14.Text = "Position";
       this.columnHeader14.Width = 96;
+      // 
+      // pictureMap
+      // 
+      this.pictureMap.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+      this.pictureMap.DisplayPage = fastImage3;
+      this.pictureMap.Image = null;
+      this.pictureMap.Location = new System.Drawing.Point(503, 3);
+      this.pictureMap.Name = "pictureMap";
+      this.pictureMap.Size = new System.Drawing.Size(508, 404);
+      this.pictureMap.TabIndex = 0;
+      this.pictureMap.TabStop = false;
       // 
       // tabExport
       // 
@@ -1889,6 +1977,7 @@
             this.openToolStripMenuItem,
             this.appendProjectToolStripMenuItem,
             this.saveToolStripMenuItem,
+            this.saveAsToolStripMenuItem,
             this.toolStripSeparator1,
             this.autoptimizeToolStripMenuItem,
             this.checkProjectToolStripMenuItem,
@@ -1903,66 +1992,66 @@
       // openToolStripMenuItem
       // 
       this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-      this.openToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
+      this.openToolStripMenuItem.Size = new System.Drawing.Size(185, 22);
       this.openToolStripMenuItem.Text = "&Open...";
       this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
       // 
       // appendProjectToolStripMenuItem
       // 
       this.appendProjectToolStripMenuItem.Name = "appendProjectToolStripMenuItem";
-      this.appendProjectToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
+      this.appendProjectToolStripMenuItem.Size = new System.Drawing.Size(185, 22);
       this.appendProjectToolStripMenuItem.Text = "&Append project...";
       this.appendProjectToolStripMenuItem.Click += new System.EventHandler(this.appendProjectToolStripMenuItem_Click);
       // 
       // saveToolStripMenuItem
       // 
       this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-      this.saveToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
+      this.saveToolStripMenuItem.Size = new System.Drawing.Size(185, 22);
       this.saveToolStripMenuItem.Text = "&Save...";
       this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
       // 
       // toolStripSeparator1
       // 
       this.toolStripSeparator1.Name = "toolStripSeparator1";
-      this.toolStripSeparator1.Size = new System.Drawing.Size(181, 6);
+      this.toolStripSeparator1.Size = new System.Drawing.Size(182, 6);
       // 
       // autoptimizeToolStripMenuItem
       // 
       this.autoptimizeToolStripMenuItem.Name = "autoptimizeToolStripMenuItem";
-      this.autoptimizeToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
+      this.autoptimizeToolStripMenuItem.Size = new System.Drawing.Size(185, 22);
       this.autoptimizeToolStripMenuItem.Text = "Autoptimize";
       this.autoptimizeToolStripMenuItem.Click += new System.EventHandler(this.autoptimizeToolStripMenuItem_Click);
       // 
       // checkProjectToolStripMenuItem
       // 
       this.checkProjectToolStripMenuItem.Name = "checkProjectToolStripMenuItem";
-      this.checkProjectToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
+      this.checkProjectToolStripMenuItem.Size = new System.Drawing.Size(185, 22);
       this.checkProjectToolStripMenuItem.Text = "Check Project";
       this.checkProjectToolStripMenuItem.Click += new System.EventHandler(this.checkProjectToolStripMenuItem_Click);
       // 
       // exportScreenToDataToolStripMenuItem
       // 
       this.exportScreenToDataToolStripMenuItem.Name = "exportScreenToDataToolStripMenuItem";
-      this.exportScreenToDataToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
+      this.exportScreenToDataToolStripMenuItem.Size = new System.Drawing.Size(185, 22);
       this.exportScreenToDataToolStripMenuItem.Text = "Export screen to data";
       this.exportScreenToDataToolStripMenuItem.Click += new System.EventHandler(this.exportScreenToDataToolStripMenuItem_Click);
       // 
       // projectStatsToolStripMenuItem
       // 
       this.projectStatsToolStripMenuItem.Name = "projectStatsToolStripMenuItem";
-      this.projectStatsToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
+      this.projectStatsToolStripMenuItem.Size = new System.Drawing.Size(185, 22);
       this.projectStatsToolStripMenuItem.Text = "Project Stats";
       this.projectStatsToolStripMenuItem.Click += new System.EventHandler(this.projectStatsToolStripMenuItem_Click);
       // 
       // toolStripSeparator2
       // 
       this.toolStripSeparator2.Name = "toolStripSeparator2";
-      this.toolStripSeparator2.Size = new System.Drawing.Size(181, 6);
+      this.toolStripSeparator2.Size = new System.Drawing.Size(182, 6);
       // 
       // menuFileExit
       // 
       this.menuFileExit.Name = "menuFileExit";
-      this.menuFileExit.Size = new System.Drawing.Size(184, 22);
+      this.menuFileExit.Size = new System.Drawing.Size(185, 22);
       this.menuFileExit.Text = "E&xit";
       this.menuFileExit.Click += new System.EventHandler(this.menuFileExit_Click);
       // 
@@ -1976,7 +2065,7 @@
             this.toolStripSeparator4,
             this.manageCharsetsToolStripMenuItem});
       this.menuExternal.Name = "menuExternal";
-      this.menuExternal.Size = new System.Drawing.Size(60, 20);
+      this.menuExternal.Size = new System.Drawing.Size(61, 20);
       this.menuExternal.Text = "&External";
       // 
       // menuExternalImportSpriteset
@@ -2038,90 +2127,12 @@
       this.toolStripButton1.ToolTipText = "Save and Export";
       this.toolStripButton1.Click += new System.EventHandler(this.toolStripButton1_Click);
       // 
-      // pictureEditor
+      // saveAsToolStripMenuItem
       // 
-      this.pictureEditor.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-      this.pictureEditor.DisplayPage = fastImage2;
-      this.pictureEditor.Image = null;
-      this.pictureEditor.Location = new System.Drawing.Point(368, 6);
-      this.pictureEditor.Name = "pictureEditor";
-      this.pictureEditor.Size = new System.Drawing.Size(644, 404);
-      this.pictureEditor.TabIndex = 3;
-      this.pictureEditor.TabStop = false;
-      this.pictureEditor.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureEditor_MouseDown);
-      this.pictureEditor.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pictureEditor_MouseMove);
-      this.pictureEditor.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pictureEditor_MouseUp);
-      // 
-      // pictureCharset
-      // 
-      this.pictureCharset.AutoScroll = true;
-      this.pictureCharset.AutoScrollHorizontalMaximum = 100;
-      this.pictureCharset.AutoScrollHorizontalMinimum = 0;
-      this.pictureCharset.AutoScrollHPos = 0;
-      this.pictureCharset.AutoScrollVerticalMaximum = 100;
-      this.pictureCharset.AutoScrollVerticalMinimum = 0;
-      this.pictureCharset.AutoScrollVPos = 0;
-      this.pictureCharset.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-      this.pictureCharset.EnableAutoScrollHorizontal = true;
-      this.pictureCharset.EnableAutoScrollVertical = true;
-      this.pictureCharset.HottrackColor = ((uint)(2151694591u));
-      this.pictureCharset.ItemHeight = 13;
-      this.pictureCharset.ItemWidth = 196;
-      this.pictureCharset.Location = new System.Drawing.Point(406, 127);
-      this.pictureCharset.Name = "pictureCharset";
-      this.pictureCharset.PixelFormat = System.Drawing.Imaging.PixelFormat.DontCare;
-      this.pictureCharset.SelectedIndex = -1;
-      this.pictureCharset.Size = new System.Drawing.Size(260, 260);
-      this.pictureCharset.TabIndex = 10;
-      this.pictureCharset.VisibleAutoScrollHorizontal = false;
-      this.pictureCharset.VisibleAutoScrollVertical = false;
-      // 
-      // pictureElement
-      // 
-      this.pictureElement.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-      this.pictureElement.DisplayPage = fastImage1;
-      this.pictureElement.Image = null;
-      this.pictureElement.Location = new System.Drawing.Point(672, 127);
-      this.pictureElement.Name = "pictureElement";
-      this.pictureElement.Size = new System.Drawing.Size(336, 336);
-      this.pictureElement.TabIndex = 4;
-      this.pictureElement.TabStop = false;
-      this.pictureElement.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureElement_MouseDown);
-      // 
-      // listSprites
-      // 
-      this.listSprites.AutoScroll = true;
-      this.listSprites.AutoScrollHorizontalMaximum = 100;
-      this.listSprites.AutoScrollHorizontalMinimum = 0;
-      this.listSprites.AutoScrollHPos = 0;
-      this.listSprites.AutoScrollVerticalMaximum = 100;
-      this.listSprites.AutoScrollVerticalMinimum = 0;
-      this.listSprites.AutoScrollVPos = 0;
-      this.listSprites.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-      this.listSprites.EnableAutoScrollHorizontal = true;
-      this.listSprites.EnableAutoScrollVertical = true;
-      this.listSprites.HottrackColor = ((uint)(2151694591u));
-      this.listSprites.ItemHeight = 13;
-      this.listSprites.ItemWidth = 200;
-      this.listSprites.Location = new System.Drawing.Point(204, 76);
-      this.listSprites.Name = "listSprites";
-      this.listSprites.PixelFormat = System.Drawing.Imaging.PixelFormat.DontCare;
-      this.listSprites.SelectedIndex = -1;
-      this.listSprites.Size = new System.Drawing.Size(303, 311);
-      this.listSprites.TabIndex = 5;
-      this.listSprites.VisibleAutoScrollHorizontal = false;
-      this.listSprites.VisibleAutoScrollVertical = false;
-      // 
-      // pictureMap
-      // 
-      this.pictureMap.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-      this.pictureMap.DisplayPage = fastImage3;
-      this.pictureMap.Image = null;
-      this.pictureMap.Location = new System.Drawing.Point(503, 3);
-      this.pictureMap.Name = "pictureMap";
-      this.pictureMap.Size = new System.Drawing.Size(508, 404);
-      this.pictureMap.TabIndex = 0;
-      this.pictureMap.TabStop = false;
+      this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
+      this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(185, 22);
+      this.saveAsToolStripMenuItem.Text = "Save as...";
+      this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.saveAsToolStripMenuItem_Click);
       // 
       // FormMain
       // 
@@ -2137,8 +2148,10 @@
       this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormMain_FormClosing);
       this.tabElements.ResumeLayout(false);
       this.tabElements.PerformLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.pictureElement)).EndInit();
       this.tabScreens.ResumeLayout(false);
       this.tabScreens.PerformLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.pictureEditor)).EndInit();
       this.tabMain.ResumeLayout(false);
       this.tabObjects.ResumeLayout(false);
       this.tabObjects.PerformLayout();
@@ -2150,6 +2163,7 @@
       this.groupRegionContent.ResumeLayout(false);
       this.groupRegionContent.PerformLayout();
       this.groupRegions.ResumeLayout(false);
+      ((System.ComponentModel.ISupportInitialize)(this.pictureMap)).EndInit();
       this.tabExport.ResumeLayout(false);
       this.groupBox2.ResumeLayout(false);
       this.groupBox2.PerformLayout();
@@ -2159,9 +2173,6 @@
       this.menuStrip1.PerformLayout();
       this.toolStrip1.ResumeLayout(false);
       this.toolStrip1.PerformLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.pictureEditor)).EndInit();
-      ((System.ComponentModel.ISupportInitialize)(this.pictureElement)).EndInit();
-      ((System.ComponentModel.ISupportInitialize)(this.pictureMap)).EndInit();
       this.ResumeLayout(false);
       this.PerformLayout();
 
@@ -2352,7 +2363,7 @@
     private System.Windows.Forms.Button btnPasteFromExport;
     private System.Windows.Forms.ToolStripMenuItem projectStatsToolStripMenuItem;
     private System.Windows.Forms.Button button4;
-
+    private System.Windows.Forms.ToolStripMenuItem saveAsToolStripMenuItem;
   }
 }
 

@@ -9,7 +9,7 @@ namespace C64Studio.Displayer
 {
   public class CharacterDisplayer
   {
-    public static void DisplayHiResChar( GR.Memory.ByteBuffer Data, int BGColor, int CharColor, GR.Image.IImage TargetImage, int X, int Y )
+    public static void DisplayHiResChar( GR.Memory.ByteBuffer Data, Palette Palette, int BGColor, int CharColor, GR.Image.IImage TargetImage, int X, int Y )
     {
       // single color
       int colorIndex = 0;
@@ -25,19 +25,20 @@ namespace C64Studio.Displayer
           {
             colorIndex = BGColor;
           }
-          TargetImage.SetPixel( X + i, Y + j, (uint)colorIndex );
+          uint color = Palette.ColorValues[colorIndex];
+          TargetImage.SetPixel( X + i, Y + j, color );
         }
       }
     }
 
 
 
-    public static void DisplayMultiColorChar( GR.Memory.ByteBuffer Data, int BGColor, int MColor1, int MColor2, int CharColor, GR.Image.IImage TargetImage, int X, int Y )
+    public static void DisplayMultiColorChar( GR.Memory.ByteBuffer Data, Palette Palette, int BGColor, int MColor1, int MColor2, int CharColor, GR.Image.IImage TargetImage, int X, int Y )
     {
       // multicolor
       if ( CharColor < 8 )
       {
-        DisplayHiResChar( Data, BGColor, CharColor, TargetImage, X, Y );
+        DisplayHiResChar( Data, Palette, BGColor, CharColor, TargetImage, X, Y );
         return;
       }
 
@@ -64,20 +65,21 @@ namespace C64Studio.Displayer
               pixelValue = charColor;
               break;
           }
-          TargetImage.SetPixel( X + i * 2, Y + j, (uint)pixelValue );
-          TargetImage.SetPixel( X + i * 2 + 1, Y + j, (uint)pixelValue );
+          uint color = Palette.ColorValues[pixelValue];
+          TargetImage.SetPixel( X + i * 2, Y + j, color );
+          TargetImage.SetPixel( X + i * 2 + 1, Y + j, color );
         }
       }
     }
 
 
 
-    public static void DisplayVC20Char( GR.Memory.ByteBuffer Data, int BGColor, int MColor1, int MColor2, int CharColor, GR.Image.IImage TargetImage, int X, int Y )
+    public static void DisplayVC20Char( GR.Memory.ByteBuffer Data, Palette Palette, int BGColor, int MColor1, int MColor2, int CharColor, GR.Image.IImage TargetImage, int X, int Y )
     {
       // multicolor
       if ( CharColor < 8 )
       {
-        DisplayHiResChar( Data, BGColor, CharColor, TargetImage, X, Y );
+        DisplayHiResChar( Data, Palette, BGColor, CharColor, TargetImage, X, Y );
         return;
       }
 
@@ -105,22 +107,25 @@ namespace C64Studio.Displayer
               pixelValue = MColor2;
               break;
           }
-          TargetImage.SetPixel( X + i * 2, Y + j, (uint)pixelValue );
-          TargetImage.SetPixel( X + i * 2 + 1, Y + j, (uint)pixelValue );
+          uint  color = Palette.ColorValues[pixelValue];
+
+          TargetImage.SetPixel( X + i * 2, Y + j, color );
+          TargetImage.SetPixel( X + i * 2 + 1, Y + j, color );
         }
       }
     }
 
 
 
-    public static void DisplayMega65FCMChar( GR.Memory.ByteBuffer Data, int BGColor, int CharColor, GR.Image.IImage TargetImage, int X, int Y )
+    public static void DisplayMega65FCMChar( GR.Memory.ByteBuffer Data, Palette Palette, int BGColor, int CharColor, GR.Image.IImage TargetImage, int X, int Y )
     {
       for ( int j = 0; j < 8; ++j )
       {
         for ( int i = 0; i < 8; ++i )
         {
           int colorIndex = Data.ByteAt( i + j * 8 );
-          TargetImage.SetPixel( X + i, Y + j, (uint)colorIndex );
+          uint color = Palette.ColorValues[colorIndex];
+          TargetImage.SetPixel( X + i, Y + j, color );
         }
       }
     }
@@ -175,24 +180,24 @@ namespace C64Studio.Displayer
             bgColor = AltBGColor4;
             break;
         }
-        DisplayHiResChar( origChar.Tile.Data, bgColor, AlternativeColor, TargetImage, X, Y );
+        DisplayHiResChar( origChar.Tile.Data, Charset.Colors.Palette, bgColor, AlternativeColor, TargetImage, X, Y );
       }
       else if ( AlternativeMode == TextCharMode.COMMODORE_MULTICOLOR )
       {
-        DisplayMultiColorChar( Char.Tile.Data, AltBGColor, AltMColor1, AltMColor2, AlternativeColor, TargetImage, X, Y );
+        DisplayMultiColorChar( Char.Tile.Data, Charset.Colors.Palette, AltBGColor, AltMColor1, AltMColor2, AlternativeColor, TargetImage, X, Y );
       }
       else if ( AlternativeMode == TextCharMode.COMMODORE_HIRES )
       {
-        DisplayHiResChar( Char.Tile.Data, AltBGColor, AlternativeColor, TargetImage, X, Y );
+        DisplayHiResChar( Char.Tile.Data, Charset.Colors.Palette, AltBGColor, AlternativeColor, TargetImage, X, Y );
       }
       else if ( ( AlternativeMode == TextCharMode.MEGA65_FCM )
       ||        ( AlternativeMode == TextCharMode.MEGA65_FCM_16BIT ) )
       {
-        DisplayMega65FCMChar( Char.Tile.Data, AltBGColor, AlternativeColor, TargetImage, X, Y );
+        DisplayMega65FCMChar( Char.Tile.Data, Charset.Colors.Palette, AltBGColor, AlternativeColor, TargetImage, X, Y );
       }
-      else if ( AlternativeMode == TextCharMode.VC20 )
+      else if ( AlternativeMode == TextCharMode.VIC20 )
       {
-        DisplayVC20Char( Char.Tile.Data, AltBGColor, AltMColor1, AltMColor2, AlternativeColor, TargetImage, X, Y );
+        DisplayVC20Char( Char.Tile.Data, Charset.Colors.Palette, AltBGColor, AltMColor1, AltMColor2, AlternativeColor, TargetImage, X, Y );
       }
       else
       {

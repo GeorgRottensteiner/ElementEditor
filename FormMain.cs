@@ -8,6 +8,8 @@ using System.Windows.Forms;
 using System.Linq;
 using C64Studio.Formats;
 using C64Studio.Displayer;
+using RetroDevStudio.Types;
+using RetroDevStudio;
 
 namespace ElementEditor
 {
@@ -33,7 +35,7 @@ namespace ElementEditor
 
       public SpriteData()
       {
-        Image = new GR.Image.MemoryImage( 24, 21, System.Drawing.Imaging.PixelFormat.Format8bppIndexed );
+        Image = new GR.Image.MemoryImage( 24, 21, System.Drawing.Imaging.PixelFormat.Format32bppRgb );
       }
 
 
@@ -119,7 +121,7 @@ namespace ElementEditor
     {
       InitializeComponent();
 
-      pictureCharset.PixelFormat = System.Drawing.Imaging.PixelFormat.Format8bppIndexed;
+      pictureCharset.PixelFormat = System.Drawing.Imaging.PixelFormat.Format32bppRgb;
 
       m_ScreenContent.InvalidTile = new CharacterInfo();
       m_ScreenContent.Resize( 40, 25 );
@@ -198,19 +200,19 @@ namespace ElementEditor
         System.Windows.Forms.MessageBox.Show( e.ToString() );
       }*/
 
-      m_BackgroundImage = new GR.Image.FastImage( 320, 200, System.Drawing.Imaging.PixelFormat.Format8bppIndexed );
+      m_BackgroundImage = new GR.Image.FastImage( 320, 200, System.Drawing.Imaging.PixelFormat.Format32bppRgb );
 
       pictureCharset.HottrackColor = 0x80ff00ff;
       pictureCharset.SelectedIndexChanged += new EventHandler( pictureCharset_SelectedIndexChanged );
       pictureCharset.SetDisplaySize( 128, 128 );
-      pictureEditor.DisplayPage = new GR.Image.FastImage( 320, 200, System.Drawing.Imaging.PixelFormat.Format8bppIndexed );
+      pictureEditor.DisplayPage = new GR.Image.FastImage( 320, 200, System.Drawing.Imaging.PixelFormat.Format32bppRgb );
       pictureEditor.MouseWheel += PictureEditor_MouseWheel;
-      listSprites.PixelFormat = System.Drawing.Imaging.PixelFormat.Format8bppIndexed;
+      listSprites.PixelFormat = System.Drawing.Imaging.PixelFormat.Format32bppRgb;
       listSprites.ItemWidth = 24;
       listSprites.ItemHeight = 21;
       listSprites.HottrackColor = 0x80ff00ff;
       listSprites.SelectedIndexChanged += new EventHandler( listSprites_SelectedIndexChanged );
-      pictureMap.DisplayPage = new GR.Image.FastImage( pictureMap.ClientSize.Width, pictureMap.ClientSize.Height, System.Drawing.Imaging.PixelFormat.Format8bppIndexed );
+      pictureMap.DisplayPage = new GR.Image.FastImage( pictureMap.ClientSize.Width, pictureMap.ClientSize.Height, System.Drawing.Imaging.PixelFormat.Format32bppRgb );
       pictureMap.SetImageSize( pictureMap.ClientSize.Width, pictureMap.ClientSize.Height );
 
       for ( int j = 0; j < 16; ++j )
@@ -221,7 +223,7 @@ namespace ElementEditor
         listSprites.DisplayPage.SetPaletteColor( j, (byte)( ( m_Project.m_ColorValues[j] & 0x00ff0000 ) >> 16 ), (byte)( ( m_Project.m_ColorValues[j] & 0x0000ff00 ) >> 8 ), (byte)( m_Project.m_ColorValues[j] & 0xff ) );
         m_BackgroundImage.SetPaletteColor( j, (byte)( ( m_Project.m_ColorValues[j] & 0x00ff0000 ) >> 16 ), (byte)( ( m_Project.m_ColorValues[j] & 0x0000ff00 ) >> 8 ), (byte)( m_Project.m_ColorValues[j] & 0xff ) );
       }
-      pictureElement.DisplayPage = new GR.Image.FastImage( 42 * 4, 42 * 4, System.Drawing.Imaging.PixelFormat.Format8bppIndexed );
+      pictureElement.DisplayPage = new GR.Image.FastImage( 42 * 4, 42 * 4, System.Drawing.Imaging.PixelFormat.Format32bppRgb );
       for ( int j = 0; j < 16; ++j )
       {
         pictureElement.DisplayPage.SetPaletteColor( j, (byte)( ( m_Project.m_ColorValues[j] & 0x00ff0000 ) >> 16 ), (byte)( ( m_Project.m_ColorValues[j] & 0x0000ff00 ) >> 8 ), (byte)( m_Project.m_ColorValues[j] & 0xff ) );
@@ -230,7 +232,7 @@ namespace ElementEditor
       GR.Image.FastImage fastImage = GR.Image.FastImage.FromImage( Properties.Resources.map_numbers );
       for ( int i = 0; i < 10; ++i )
       {
-        m_MapNumbers[i] = new GR.Image.MemoryImage( 5, 7, System.Drawing.Imaging.PixelFormat.Format8bppIndexed );
+        m_MapNumbers[i] = new GR.Image.MemoryImage( 5, 7, System.Drawing.Imaging.PixelFormat.Format32bppRgb );
         for ( int j = 0; j < 16; ++j )
         {
           m_MapNumbers[i].SetPaletteColor( j, (byte)( ( m_Project.m_ColorValues[j] & 0x00ff0000 ) >> 16 ), (byte)( ( m_Project.m_ColorValues[j] & 0x0000ff00 ) >> 8 ), (byte)( m_Project.m_ColorValues[j] & 0xff ) );
@@ -568,6 +570,14 @@ namespace ElementEditor
       {
         CharsetProject charSet = m_Project.Charsets[m_CurrentScreen.CharsetIndex];
 
+        for ( int i = 0; i < charSet.Colors.Palette.NumColors; ++i )
+        {
+          pictureEditor.DisplayPage.SetPaletteColor( i, 
+            (byte)( ( charSet.Colors.Palette.ColorValues[i] & 0x00ff0000 ) >> 16 ), 
+            (byte)( ( charSet.Colors.Palette.ColorValues[i] & 0x0000ff00 ) >> 8 ), 
+            (byte)( charSet.Colors.Palette.ColorValues[i] & 0xff ) );
+        }
+
         for ( int i = 0; i < 40; ++i )
         {
           for ( int j = 0; j < 25; ++j )
@@ -625,6 +635,8 @@ namespace ElementEditor
 
         System.Drawing.Point neighbourPoint = new Point();
 
+        uint    selectionColor = 0xff40ff40;
+
         foreach ( System.Drawing.Point point in origPoints )
         {
           neighbourPoint = point;
@@ -633,7 +645,7 @@ namespace ElementEditor
           {
             for ( int y = 0; y < 8; ++y )
             {
-              pictureEditor.DisplayPage.SetPixel( ( point.X - m_ScreenOffsetX ) * 8, ( point.Y - m_ScreenOffsetY ) * 8 + y, 13 );
+              pictureEditor.DisplayPage.SetPixel( ( point.X - m_ScreenOffsetX ) * 8, ( point.Y - m_ScreenOffsetY ) * 8 + y, selectionColor );
             }
           }
           neighbourPoint.X = point.X + 1;
@@ -641,7 +653,7 @@ namespace ElementEditor
           {
             for ( int y = 0; y < 8; ++y )
             {
-              pictureEditor.DisplayPage.SetPixel( ( point.X - m_ScreenOffsetX ) * 8 + 8 - 1, ( point.Y - m_ScreenOffsetY ) * 8 + y, 13 );
+              pictureEditor.DisplayPage.SetPixel( ( point.X - m_ScreenOffsetX ) * 8 + 8 - 1, ( point.Y - m_ScreenOffsetY ) * 8 + y, selectionColor );
             }
           }
           neighbourPoint.X = point.X;
@@ -650,7 +662,7 @@ namespace ElementEditor
           {
             for ( int x = 0; x < 8; ++x )
             {
-              pictureEditor.DisplayPage.SetPixel( ( point.X - m_ScreenOffsetX ) * 8 + x, ( point.Y - m_ScreenOffsetY ) * 8, 13 );
+              pictureEditor.DisplayPage.SetPixel( ( point.X - m_ScreenOffsetX ) * 8 + x, ( point.Y - m_ScreenOffsetY ) * 8, selectionColor );
             }
           }
           neighbourPoint.Y = point.Y + 1;
@@ -658,19 +670,20 @@ namespace ElementEditor
           {
             for ( int x = 0; x < 8; ++x )
             {
-              pictureEditor.DisplayPage.SetPixel( ( point.X - m_ScreenOffsetX ) * 8 + x, ( point.Y - m_ScreenOffsetY ) * 8 + 8 - 1, 13 );
+              pictureEditor.DisplayPage.SetPixel( ( point.X - m_ScreenOffsetX ) * 8 + x, ( point.Y - m_ScreenOffsetY ) * 8 + 8 - 1, selectionColor );
             }
           }
         }
       }
       // safety border (soulless/j)
+      uint    safetyColor = 0xffff00ff;
       if ( m_Project.ProjectType == "Rocky" )
       {
-        pictureEditor.DisplayPage.Box( 0, 176 + 16, pictureEditor.DisplayPage.Width, 1, 10 );
+        pictureEditor.DisplayPage.Box( 0, 176 + 16, pictureEditor.DisplayPage.Width, 1, safetyColor );
       }
       else
       {
-        pictureEditor.DisplayPage.Box( 0, 176, pictureEditor.DisplayPage.Width, 1, 10 );
+        pictureEditor.DisplayPage.Box( 0, 176, pictureEditor.DisplayPage.Width, 1, safetyColor );
       }
       pictureEditor.Invalidate();
     }
@@ -848,22 +861,23 @@ namespace ElementEditor
               if ( element.Object.SpriteImage != null )
               {
                 pictureEditor.DisplayPage.DrawFromImage( element.Object.SpriteImage,
-                                                               ( element.X - m_ScreenOffsetX ) * 8 - 8, ( element.Y - m_ScreenOffsetY ) * 8 - 13 );
+                                                         ( element.X - m_ScreenOffsetX ) * 8 - 8, ( element.Y - m_ScreenOffsetY ) * 8 - 13 );
 
                 int movePathX = ( element.X - m_ScreenOffsetX ) * 8 - 8 * element.Object.MoveBorderLeft;
                 int movePathY = ( element.Y - m_ScreenOffsetY ) * 8 - 8 * element.Object.MoveBorderTop;
                 int movePathEndX = ( element.X - m_ScreenOffsetX ) * 8 + 7 + 8 * element.Object.MoveBorderRight;
                 int movePathEndY = ( element.Y - m_ScreenOffsetY ) * 8 + 7 + 8 * element.Object.MoveBorderBottom;
 
+                uint    colorObjectSelection = 0xffff0000;
                 for ( int x = movePathX; x <= movePathEndX; ++x )
                 {
-                  pictureEditor.DisplayPage.SetPixel( x, movePathY, 10 );
-                  pictureEditor.DisplayPage.SetPixel( x, movePathEndY, 10 );
+                  pictureEditor.DisplayPage.SetPixel( x, movePathY, colorObjectSelection );
+                  pictureEditor.DisplayPage.SetPixel( x, movePathEndY, colorObjectSelection );
                 }
                 for ( int y = movePathY; y <= movePathEndY; ++y )
                 {
-                  pictureEditor.DisplayPage.SetPixel( movePathX, y, 10 );
-                  pictureEditor.DisplayPage.SetPixel( movePathEndX, y, 10 );
+                  pictureEditor.DisplayPage.SetPixel( movePathX, y, colorObjectSelection );
+                  pictureEditor.DisplayPage.SetPixel( movePathEndX, y, colorObjectSelection );
                 }
 
               }
@@ -983,67 +997,30 @@ namespace ElementEditor
       {
         AlternativeColor = Data.Tile.CustomColor;
       }
-      RebuildSpriteImage( Data.Tile.Data, Data.Tile.Image, Data.Tile.Mode == RetroDevStudio.GraphicTileMode.COMMODORE_MULTICOLOR, AlternativeColor );
+
+      RebuildSpriteImage( Data.Tile, m_SpriteProject.Colors.Palette, Data.Tile.Image, Data.Mode, AlternativeColor );
     }
 
 
 
-    void RebuildSpriteImage( GR.Memory.ByteBuffer Data, GR.Image.MemoryImage Image, bool Multicolor, int Color )
+    void RebuildSpriteImage( GraphicTile Tile, Palette Palette, GR.Image.MemoryImage Image, RetroDevStudio.SpriteMode Mode, int AlternativeColor )
     {
-      if ( !Multicolor )
+      switch ( Mode )
       {
-        // single color
-        for ( int j = 0; j < 21; ++j )
-        {
-          for ( int k = 0; k < 3; ++k )
-          {
-            for ( int i = 0; i < 8; ++i )
-            {
-              if ( ( Data.ByteAt( j * 3 + k ) & ( 1 << ( 7 - i ) ) ) != 0 )
-              {
-                //Data.Image.SetPixel( k * 8 + i, j, m_ColorValues[Data.Color] );
-                Image.SetPixel( k * 8 + i, j, (uint)Color );
-              }
-              else
-              {
-                //Data.Image.SetPixel( k * 8 + i, j, m_ColorValues[m_BackgroundColorSprites] );
-                Image.SetPixel( k * 8 + i, j, (uint)m_SpriteProject.Colors.BackgroundColor );
-              }
-            }
-          }
-        }
-      }
-      else
-      {
-        // multicolor
-        for ( int j = 0; j < 21; ++j )
-        {
-          for ( int k = 0; k < 3; ++k )
-          {
-            for ( int i = 0; i < 4; ++i )
-            {
-              int pixelValue = ( Data.ByteAt( j * 3 + k ) & ( 3 << ( ( 3 - i ) * 2 ) ) ) >> ( ( 3 - i ) * 2 );
-
-              switch ( pixelValue )
-              {
-                case 0:
-                  pixelValue = m_SpriteProject.Colors.BackgroundColor;
-                  break;
-                case 1:
-                  pixelValue = m_SpriteProject.Colors.MultiColor1;
-                  break;
-                case 3:
-                  pixelValue = m_SpriteProject.Colors.MultiColor2;
-                  break;
-                case 2:
-                  pixelValue = Color;
-                  break;
-              }
-              Image.SetPixel( k * 8 + i * 2, j, (uint)pixelValue );
-              Image.SetPixel( k * 8 + i * 2 + 1, j, (uint)pixelValue );
-            }
-          }
-        }
+        case RetroDevStudio.SpriteMode.COMMODORE_24_X_21_HIRES:
+          SpriteDisplayer.DisplayHiResSprite( Tile.Data, Palette, Tile.Width, Tile.Height, m_SpriteProject.Colors.BackgroundColor, AlternativeColor, Image, 0, 0 );
+          break;
+        case RetroDevStudio.SpriteMode.COMMODORE_24_X_21_MULTICOLOR:
+          SpriteDisplayer.DisplayMultiColorSprite( Tile.Data, Palette, Tile.Width, Tile.Height,
+                  m_SpriteProject.Colors.BackgroundColor,
+                  m_SpriteProject.Colors.MultiColor1,
+                  m_SpriteProject.Colors.MultiColor2,
+                  AlternativeColor, Image, 0, 0 );
+          break;
+        case RetroDevStudio.SpriteMode.MEGA65_8_X_21_16_COLORS:
+        case RetroDevStudio.SpriteMode.MEGA65_16_X_21_16_COLORS:
+          SpriteDisplayer.DisplayFCMSprite( Tile.Data, Palette, Tile.Width, Tile.Height, m_SpriteProject.Colors.BackgroundColor, Image, 0, 0, false, false );
+          break;
       }
     }
 
@@ -1199,6 +1176,19 @@ namespace ElementEditor
 
     public void SetActiveElementCharset( CharsetProject CharSet, int Color1, int Color2, bool Multicolor )
     {
+      for ( int i = 0; i < CharSet.Colors.Palette.NumColors; ++i )
+      {
+        pictureCharset.DisplayPage.SetPaletteColor( i,
+          (byte)( ( CharSet.Colors.Palette.ColorValues[i] & 0x00ff0000 ) >> 16 ),
+          (byte)( ( CharSet.Colors.Palette.ColorValues[i] & 0x0000ff00 ) >> 8 ),
+          (byte)( CharSet.Colors.Palette.ColorValues[i] & 0xff ) );
+
+        pictureElement.DisplayPage.SetPaletteColor( i,
+          (byte)( ( CharSet.Colors.Palette.ColorValues[i] & 0x00ff0000 ) >> 16 ),
+          (byte)( ( CharSet.Colors.Palette.ColorValues[i] & 0x0000ff00 ) >> 8 ),
+          (byte)( CharSet.Colors.Palette.ColorValues[i] & 0xff ) );
+      }
+
       for ( int i = 0; i < 256; ++i )
       {
         for ( int j = 0; j < 16; ++j )
@@ -1254,13 +1244,8 @@ namespace ElementEditor
         editConstantOffset.Text = m_Project.ExportConstantOffset.ToString();
         comboProjectType.SelectedItem = m_Project.ProjectType;
 
-        /*
-        m_Project.CharsetProjects.Clear();
-        m_Project.CharsetProjects.Add( @"d:\privat\projekte\c64\j\studio\j.charsetproject" );
-         */
-
-      if ( ( m_Project.CharsetProjects.Count == 0 )
-        && ( !string.IsNullOrEmpty( m_Project.OldCharsetProjectFilename ) ) )
+        if ( ( m_Project.CharsetProjects.Count == 0 )
+        &&   ( !string.IsNullOrEmpty( m_Project.OldCharsetProjectFilename ) ) )
         {
           string fullPath = GR.Path.Append( GR.Path.RemoveFileSpec( Filename ), m_Project.OldCharsetProjectFilename );
           CharsetProject charSet = OpenCharsetProject( fullPath );
@@ -1313,15 +1298,6 @@ namespace ElementEditor
           {
             comboScreenCharset.Items.Add( System.IO.Path.GetFileNameWithoutExtension( charSet.Name ) );
             comboElementCharset.Items.Add( System.IO.Path.GetFileNameWithoutExtension( charSet.Name ) );
-
-            /*
-            for ( int j = 0; j < 16; ++j )
-            {
-              for ( int i = 0; i < 256; ++i )
-              {
-                charSet.Characters[i].AllColorImage.SetPaletteColor( j, (byte)( ( m_Project.m_ColorValues[j] & 0x00ff0000 ) >> 16 ), (byte)( ( m_Project.m_ColorValues[j] & 0x0000ff00 ) >> 8 ), (byte)( m_Project.m_ColorValues[j] & 0xff ) );
-              }
-            }*/
           }
         }
         if ( comboScreenCharset.Items.Count > 0 )
@@ -1351,9 +1327,10 @@ namespace ElementEditor
                 &&   ( element.Object.TemplateIndex != -1 ) )
                 {
                   element.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile.Image );
-                  RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile.Data,
+                  RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile,
+                                      m_SpriteProject.Colors.Palette,
                                       element.Object.SpriteImage,
-                                      m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Mode == RetroDevStudio.SpriteMode.COMMODORE_24_X_21_MULTICOLOR,
+                                      m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Mode,
                                       element.Object.Color );
                 }
               }
@@ -1363,6 +1340,14 @@ namespace ElementEditor
       }
       if ( m_Project.Charsets.Count > 0 )
       {
+        for ( int i = 0; i < m_Project.Charsets[0].Colors.Palette.NumColors; ++i )
+        {
+          pictureEditor.DisplayPage.SetPaletteColor( i,   
+                                                     (byte)( ( m_Project.Charsets[0].Colors.Palette.ColorValues[i] & 0xff0000 ) >> 16 ),
+                                                     (byte)( ( m_Project.Charsets[0].Colors.Palette.ColorValues[i] & 0x00ff00 ) >> 8 ),
+                                                     (byte)( ( m_Project.Charsets[0].Colors.Palette.ColorValues[i] & 0x0000ff ) >> 0 ) );
+        }
+
         SetActiveElementCharset( m_Project.Charsets[0], m_Project.Charsets[0].Colors.MultiColor1, m_Project.Charsets[0].Colors.MultiColor2, m_Project.CharsetProjects[0].Multicolor );
       }
       RedrawMap();
@@ -2508,9 +2493,10 @@ namespace ElementEditor
           screenElement.Object.Color = screenElement.Color;
           if ( screenElement.Object.TemplateIndex != -1 )
           {
-            RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Tile.Data,
+            RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Tile,
+                                m_SpriteProject.Colors.Palette, 
                                 screenElement.Object.SpriteImage,
-                                m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Mode == RetroDevStudio.SpriteMode.COMMODORE_24_X_21_MULTICOLOR,
+                                m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Mode,
                                 screenElement.Object.Color );
           }
         }
@@ -3557,7 +3543,7 @@ namespace ElementEditor
           ++totalScreenIndex;
           continue;
         }
-        result += m_Project.ExportPrefix + "_LEVEL_" + screenIndex.ToString() + "\r\n";
+        result += m_Project.ExportPrefix + "_LEVEL_" + screenIndex.ToString() +" ;" + screen.Name + "\r\n";
         if ( ( ProjectTypeWantsScreenSize() )
         &&   ( !ProjectTypeRequiresSortedElementsByX() ) 
         &&   ( !ProjectTypeRequiresSortedElementsByY() ) )
@@ -4753,9 +4739,10 @@ namespace ElementEditor
               m_DraggedScreenElement.Object.MoveBorderTop = screenElement.Object.MoveBorderTop;
               m_DraggedScreenElement.Object.TemplateIndex = screenElement.Object.TemplateIndex;
               m_DraggedScreenElement.Object.SpriteImage = new GR.Image.MemoryImage( screenElement.Object.SpriteImage );
-              RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[m_DraggedScreenElement.Object.TemplateIndex].StartSprite].Tile.Data,
+              RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[m_DraggedScreenElement.Object.TemplateIndex].StartSprite].Tile,
+                                  m_SpriteProject.Colors.Palette, 
                                   m_DraggedScreenElement.Object.SpriteImage,
-                                  m_SpriteProject.Sprites[m_Project.ObjectTemplates[m_DraggedScreenElement.Object.TemplateIndex].StartSprite].Mode == RetroDevStudio.SpriteMode.COMMODORE_24_X_21_MULTICOLOR,
+                                  m_SpriteProject.Sprites[m_Project.ObjectTemplates[m_DraggedScreenElement.Object.TemplateIndex].StartSprite].Mode,
                                   m_DraggedScreenElement.Object.Color );
 
               item.SubItems[1].Text = m_Project.ObjectTemplates[m_DraggedScreenElement.Object.TemplateIndex].Name;
@@ -5567,6 +5554,7 @@ namespace ElementEditor
         RebuildSpriteImage( i, -1 );
         listSprites.Items.Add( m_SpriteProject.Sprites[i], m_SpriteProject.Sprites[i].Tile.Image );
       }
+
       m_Project.SpriteProjectFilename = Filename;
       Modified = false;
     }
@@ -5642,9 +5630,10 @@ namespace ElementEditor
               --element.Object.TemplateIndex;
               element.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile.Image );
 
-              RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile.Data,
+              RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile,
+                                  m_SpriteProject.Colors.Palette, 
                                   element.Object.SpriteImage,
-                                  m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Mode == RetroDevStudio.SpriteMode.COMMODORE_24_X_21_MULTICOLOR,
+                                  m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Mode,
                                   element.Object.Color );
             }
           }
@@ -5735,9 +5724,10 @@ namespace ElementEditor
         {
           screenElement.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Tile.Image );
         }
-        RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Tile.Data,
+        RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Tile,
+                            m_SpriteProject.Colors.Palette, 
                             screenElement.Object.SpriteImage,
-                            m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Mode == RetroDevStudio.SpriteMode.COMMODORE_24_X_21_MULTICOLOR,
+                            m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Mode,
                             screenElement.Object.Color );
 
         Modified = true;
@@ -6388,9 +6378,9 @@ namespace ElementEditor
             && ( element.Object.TemplateIndex != -1 ) )
             {
               element.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile.Image );
-              RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile.Data,
-                                  element.Object.SpriteImage,
-                                  m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Mode == RetroDevStudio.SpriteMode.COMMODORE_24_X_21_MULTICOLOR,
+              RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile,
+                                  m_SpriteProject.Colors.Palette, element.Object.SpriteImage,
+                                  m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Mode,
                                   element.Object.Color );
             }
           }
@@ -6521,12 +6511,7 @@ namespace ElementEditor
 
         CharsetProject charSet = m_Project.Charsets[m_CurrentScreen.CharsetIndex];
 
-        GR.Image.FastImage    fastImage = new GR.Image.FastImage( 8, 8, System.Drawing.Imaging.PixelFormat.Format8bppIndexed );
-        for ( int j = 0; j < 16; ++j )
-        {
-          fastImage.SetPaletteColor( j, (byte)( ( m_Project.m_ColorValues[j] & 0x00ff0000 ) >> 16 ), (byte)( ( m_Project.m_ColorValues[j] & 0x0000ff00 ) >> 8 ), (byte)( m_Project.m_ColorValues[j] & 0xff ) );
-        }
-
+        GR.Image.FastImage    fastImage = new GR.Image.FastImage( 8, 8, System.Drawing.Imaging.PixelFormat.Format32bppRgb );
         CharacterDisplayer.DisplayChar( charSet, index, fastImage, 0, 0, comboColor.SelectedIndex );
         System.Drawing.Rectangle drawRect = new Rectangle( e.Bounds.Location, e.Bounds.Size );
         drawRect.X += 30;
@@ -6561,12 +6546,7 @@ namespace ElementEditor
 
         CharsetProject charSet = m_Project.Charsets[m_CurrentEditedElement.CharsetIndex];
 
-        GR.Image.FastImage fastImage = new GR.Image.FastImage( 8, 8, System.Drawing.Imaging.PixelFormat.Format8bppIndexed );
-        for ( int j = 0; j < 16; ++j )
-        {
-          fastImage.SetPaletteColor( j, (byte)( ( m_Project.m_ColorValues[j] & 0x00ff0000 ) >> 16 ), (byte)( ( m_Project.m_ColorValues[j] & 0x0000ff00 ) >> 8 ), (byte)( m_Project.m_ColorValues[j] & 0xff ) );
-        }
-
+        GR.Image.FastImage fastImage = new GR.Image.FastImage( 8, 8, System.Drawing.Imaging.PixelFormat.Format32bppRgb );
         CharacterDisplayer.DisplayChar( charSet, index, fastImage, 0, 0, comboColor.SelectedIndex );
         System.Drawing.Rectangle drawRect = new Rectangle( e.Bounds.Location, e.Bounds.Size );
         drawRect.X += 30;
@@ -6594,12 +6574,8 @@ namespace ElementEditor
         System.Drawing.Brush textBrush = new SolidBrush( e.ForeColor );
         e.Graphics.DrawString( index.ToString(), e.Font, textBrush, textRect );
 
-        GR.Image.FastImage fastImage = new GR.Image.FastImage( 1, 1, System.Drawing.Imaging.PixelFormat.Format8bppIndexed );
-        for ( int j = 0; j < 16; ++j )
-        {
-          fastImage.SetPaletteColor( j, (byte)( ( m_Project.m_ColorValues[j] & 0x00ff0000 ) >> 16 ), (byte)( ( m_Project.m_ColorValues[j] & 0x0000ff00 ) >> 8 ), (byte)( m_Project.m_ColorValues[j] & 0xff ) );
-        }
-        fastImage.SetPixel( 0, 0, (uint)index );
+        GR.Image.FastImage fastImage = new GR.Image.FastImage( 1, 1, System.Drawing.Imaging.PixelFormat.Format32bppRgb );
+        fastImage.SetPixel( 0, 0, m_Project.m_ColorValues[index] );
         System.Drawing.Rectangle drawRect = new Rectangle( e.Bounds.Location, e.Bounds.Size );
         drawRect.X += 20;
         drawRect.Width = 16;
@@ -6626,12 +6602,8 @@ namespace ElementEditor
         System.Drawing.Brush textBrush = new SolidBrush( e.ForeColor );
         e.Graphics.DrawString( index.ToString(), e.Font, textBrush, textRect );
 
-        GR.Image.FastImage fastImage = new GR.Image.FastImage( 1, 1, System.Drawing.Imaging.PixelFormat.Format8bppIndexed );
-        for ( int j = 0; j < 16; ++j )
-        {
-          fastImage.SetPaletteColor( j, (byte)( ( m_Project.m_ColorValues[j] & 0x00ff0000 ) >> 16 ), (byte)( ( m_Project.m_ColorValues[j] & 0x0000ff00 ) >> 8 ), (byte)( m_Project.m_ColorValues[j] & 0xff ) );
-        }
-        fastImage.SetPixel( 0, 0, (uint)index );
+        GR.Image.FastImage fastImage = new GR.Image.FastImage( 1, 1, System.Drawing.Imaging.PixelFormat.Format32bppRgb );
+        fastImage.SetPixel( 0, 0, m_Project.m_ColorValues[index] );
         System.Drawing.Rectangle drawRect = new Rectangle( e.Bounds.Location, e.Bounds.Size );
         drawRect.X += 30;
         drawRect.Width = 16;
@@ -6728,9 +6700,10 @@ namespace ElementEditor
               &&   ( element.Object.TemplateIndex != -1 ) )
               {
                 element.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile.Image );
-                RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile.Data,
+                RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile,
+                                    m_SpriteProject.Colors.Palette, 
                                     element.Object.SpriteImage,
-                                    m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Mode == RetroDevStudio.SpriteMode.COMMODORE_24_X_21_MULTICOLOR,
+                                    m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Mode,
                                     element.Object.Color );
               }
             }
@@ -7062,7 +7035,7 @@ namespace ElementEditor
 
         CharsetProject charSet = m_Project.Charsets[0];
 
-        GR.Image.FastImage fastImage = new GR.Image.FastImage( 8, 8, System.Drawing.Imaging.PixelFormat.Format8bppIndexed );
+        GR.Image.FastImage fastImage = new GR.Image.FastImage( 8, 8, System.Drawing.Imaging.PixelFormat.Format32bppRgb );
         for ( int j = 0; j < 16; ++j )
         {
           fastImage.SetPaletteColor( j, (byte)( ( m_Project.m_ColorValues[j] & 0x00ff0000 ) >> 16 ), (byte)( ( m_Project.m_ColorValues[j] & 0x0000ff00 ) >> 8 ), (byte)( m_Project.m_ColorValues[j] & 0xff ) );
@@ -7678,10 +7651,10 @@ namespace ElementEditor
         bmpImage.Dispose();
         if ( ( imgClip.Width != 320 )
         ||   ( imgClip.Height != 200 )
-        ||   ( imgClip.PixelFormat != System.Drawing.Imaging.PixelFormat.Format8bppIndexed ) )
+        ||   ( imgClip.PixelFormat != System.Drawing.Imaging.PixelFormat.Format32bppRgb ) )
         {
           imgClip.Dispose();
-          System.Windows.Forms.MessageBox.Show( "Image format invalid!\nNeeds to be 8bit index and have width/height of 320x200" );
+          System.Windows.Forms.MessageBox.Show( "Image format invalid!\nNeeds to be 32bit and have width/height of 320x200" );
           return;
         }
         imgClip.DrawTo( m_BackgroundImage, 0, 0 );
@@ -7854,7 +7827,7 @@ namespace ElementEditor
           e.Graphics.DrawString( index.ToString(), e.Font, textBrush, textRect );
         }
 
-        GR.Image.FastImage fastImage = new GR.Image.FastImage( 1, 1, System.Drawing.Imaging.PixelFormat.Format8bppIndexed );
+        GR.Image.FastImage fastImage = new GR.Image.FastImage( 1, 1, System.Drawing.Imaging.PixelFormat.Format32bppRgb );
         for ( int j = 0; j < 16; ++j )
         {
           fastImage.SetPaletteColor( j, (byte)( ( m_Project.m_ColorValues[j] & 0x00ff0000 ) >> 16 ), (byte)( ( m_Project.m_ColorValues[j] & 0x0000ff00 ) >> 8 ), (byte)( m_Project.m_ColorValues[j] & 0xff ) );
@@ -7903,7 +7876,7 @@ namespace ElementEditor
           e.Graphics.DrawString( index.ToString(), e.Font, textBrush, textRect );
         }
 
-        GR.Image.FastImage fastImage = new GR.Image.FastImage( 1, 1, System.Drawing.Imaging.PixelFormat.Format8bppIndexed );
+        GR.Image.FastImage fastImage = new GR.Image.FastImage( 1, 1, System.Drawing.Imaging.PixelFormat.Format32bppRgb );
         for ( int j = 0; j < 16; ++j )
         {
           fastImage.SetPaletteColor( j, (byte)( ( m_Project.m_ColorValues[j] & 0x00ff0000 ) >> 16 ), (byte)( ( m_Project.m_ColorValues[j] & 0x0000ff00 ) >> 8 ), (byte)( m_Project.m_ColorValues[j] & 0xff ) );
@@ -8161,6 +8134,33 @@ namespace ElementEditor
         listElementChars.SelectedIndices.Clear();
         listElementChars.SelectedIndices.Add( trueIndex );
         listElementChars.EnsureVisible( trueIndex );
+      }
+    }
+
+
+
+    private void saveAsToolStripMenuItem_Click( object sender, EventArgs e )
+    {
+      SaveFileDialog saveFile = new SaveFileDialog();
+
+      saveFile.Title = "Save editor project as";
+      saveFile.Filter = "Element Editor Project Files|*.elementeditorproject";
+
+      if ( saveFile.ShowDialog() == DialogResult.OK )
+      {
+        m_ProjectFilename = saveFile.FileName;
+      }
+      else
+      {
+        return;
+      }
+      if ( !string.IsNullOrEmpty( m_Project.SpriteProjectFilename ) )
+      {
+        m_Project.SpriteProjectFilename = GR.Path.RelativePathTo( m_ProjectFilename, false, m_Project.SpriteProjectFilename, false );
+      }
+      if ( m_Project.SaveToFile( m_ProjectFilename ) )
+      {
+        Modified = false;
       }
     }
 

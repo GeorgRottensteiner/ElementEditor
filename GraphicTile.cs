@@ -12,9 +12,9 @@ namespace RetroDevStudio.Types
     public int                  TransparentColorIndex = -1;
     public int                  Width = 8;
     public int                  Height = 8;
-    public int                  CustomColor = -1;
+    public int                  CustomColor = 1;
     public ByteBuffer           Data = new ByteBuffer( 8 );
-    public GR.Image.MemoryImage Image = new GR.Image.MemoryImage( 8, 8, System.Drawing.Imaging.PixelFormat.Format8bppIndexed );
+    public GR.Image.MemoryImage Image = new GR.Image.MemoryImage( 8, 8, System.Drawing.Imaging.PixelFormat.Format32bppRgb );
 
 
 
@@ -46,7 +46,7 @@ namespace RetroDevStudio.Types
       Colors = Color;
 
       Data  = new ByteBuffer( (uint)Lookup.NumBytes( Width, Height, Mode ) );
-      Image = new GR.Image.MemoryImage( Width, Height, System.Drawing.Imaging.PixelFormat.Format8bppIndexed );
+      Image = new GR.Image.MemoryImage( Width, Height, System.Drawing.Imaging.PixelFormat.Format32bppRgb );
     }
 
 
@@ -65,30 +65,32 @@ namespace RetroDevStudio.Types
         case GraphicTileMode.COMMODORE_ECM:
         case GraphicTileMode.COMMODORE_HIRES:
           {
-            int   byteValue = Data.ByteAt( Y );
-            if ( ( byteValue & ( 1 << ( 7 - X ) ) ) == 0 )
+            int bytePos = Y * ( ( Width + 7 ) / 8 ) + X / 8;
+            int   byteValue = Data.ByteAt( bytePos );
+            if ( ( byteValue & ( 1 << ( 7 - ( X % 8 ) ) ) ) == 0 )
             {
               if ( Color != 0 )
               {
-                Data.SetU8At( Y, (byte)( byteValue | ( 1 << ( 7 - X ) ) ) );
+                Data.SetU8At( bytePos, (byte)( byteValue | ( 1 << ( 7 - ( X % 8 ) ) ) ) );
                 return true;
               }
             }
             else if ( Color == 0  )
             {
-              Data.SetU8At( Y, (byte)( byteValue & ~( 1 << ( 7 - X ) ) ) );
+              Data.SetU8At( bytePos, (byte)( byteValue & ~( 1 << ( 7 - ( X % 8 ) ) ) ) );
               return true;
             }
           }
           break;
         case GraphicTileMode.COMMODORE_MULTICOLOR:
-          if ( CustomColor >= 8 )
           {
+            int bytePos = Y * ( ( Width + 7 ) / 8 ) + X / 8;
+
             // mc mode
-            X = X / 2;
+            X = ( X % 8 ) / 2;
             X = 3 - X;
 
-            byte newByte = (byte)( Data.ByteAt( Y ) & ~( 3 << ( 2 * X ) ) );
+            byte newByte = (byte)( Data.ByteAt( bytePos ) & ~( 3 << ( 2 * X ) ) );
 
             int     replacementBytes = 0;
 
@@ -106,19 +108,18 @@ namespace RetroDevStudio.Types
             }
             newByte |= (byte)( replacementBytes << ( 2 * X ) );
 
-            if ( Data.ByteAt( Y ) != newByte )
+            if ( Data.ByteAt( bytePos ) != newByte )
             {
-              Data.SetU8At( Y, newByte );
+              Data.SetU8At( bytePos, newByte );
               return true;
             }
-            break;
           }
-          goto case GraphicTileMode.COMMODORE_HIRES;
+          break;
         case GraphicTileMode.MEGA65_FCM_16_COLORS:
           {
             int     bytePos = X / 2 + Y * ( ( Width + 1 ) / 2 );
             byte pixelValue = Data.ByteAt( bytePos );
-            if ( ( X % 2 ) == 1 )
+            if ( ( X % 2 ) == 0 )
             {
               if ( ( pixelValue >> 4 ) != Color )
               {
@@ -126,6 +127,7 @@ namespace RetroDevStudio.Types
                 pixelValue |= (byte)( Color << 4 );
 
                 Data.SetU8At( bytePos, pixelValue );
+                //Image.SetPixel( X, Y, (uint)Color );
                 return true;
               }
             }
@@ -137,15 +139,17 @@ namespace RetroDevStudio.Types
                 pixelValue |= (byte)Color;
 
                 Data.SetU8At( bytePos, pixelValue );
+                //Image.SetPixel( X, Y, (uint)Color );
                 return true;
               }
             }
             return false;
           }
         case GraphicTileMode.MEGA65_FCM_256_COLORS:
-          if ( Data.ByteAt( X + Y * 8 ) != Color )
+          if ( Data.ByteAt( X + Y * Width ) != Color )
           {
-            Data.SetU8At( X + Y * 8, (byte)Color );
+            Data.SetU8At( X + Y * Width, (byte)Color );
+            //Image.SetPixel( X, Y, (uint)Color );
             return true;
           }
           break;
@@ -164,20 +168,22 @@ namespace RetroDevStudio.Types
       {
         case GraphicTileMode.COMMODORE_ECM:
         case GraphicTileMode.COMMODORE_HIRES:
-          if ( ( Data.ByteAt( Y * ( ( Width + 7 ) / 8 ) ) & ( 1 << ( 7 - ( X % 8 ) ) ) ) != 0 )
           {
-            return (int)ColorType.CUSTOM_COLOR;
+            if ( ( Data.ByteAt( Y * ( ( Width + 7 ) / 8 ) + X / 8 ) & ( 1 << ( 7 - ( X % 8 ) ) ) ) != 0 )
+            {
+              return (int)ColorType.CUSTOM_COLOR;
+            }
+            return (int)ColorType.BACKGROUND;
           }
-          return (int)ColorType.BACKGROUND;
         case GraphicTileMode.COMMODORE_MULTICOLOR:
-          if ( CustomColor >= 8 )
+          //if ( CustomColor >= 8 )
           {
             // multi color
-            X = X / 2;
-            X = 3 - X;
+            int innerX = ( X % 8 ) / 2;
+            innerX = 3 - innerX;
 
-            int   bitPattern = Data.ByteAt( Y ) & ( 3 << ( 2 * X ) );
-            bitPattern >>= X * 2;
+            int   bitPattern = Data.ByteAt( Y * ( ( Width + 7 ) / 8 ) + X / 8 ) & ( 3 << ( 2 * innerX ) );
+            bitPattern >>= innerX * 2;
 
             switch ( bitPattern )
             {
@@ -192,9 +198,9 @@ namespace RetroDevStudio.Types
                 return (int)ColorType.CUSTOM_COLOR;
             }
           }
-          goto case GraphicTileMode.COMMODORE_HIRES;
+          //goto case GraphicTileMode.COMMODORE_HIRES;
         case GraphicTileMode.MEGA65_FCM_16_COLORS:
-          if ( ( X % 2 ) == 0 )
+          if ( ( X % 2 ) == 1 )
           {
             return Data.ByteAt( X / 2 + Y * ( ( Width + 1 ) / 2 ) ) & 0x0f;
           }
@@ -301,6 +307,56 @@ namespace RetroDevStudio.Types
           return Colors.Palette.ColorValues[Colors.BGColor4];
       }
       return 0;
+    }
+
+
+
+    public bool Fill( int X, int Y, int ColorIndex )
+    {
+      int   origColor = GetPixel( X, Y );
+      if ( origColor == ColorIndex )
+      {
+        return false;
+      }
+
+      List<System.Drawing.Point>      pointsToCheck = new List<System.Drawing.Point>();
+
+      pointsToCheck.Add( new System.Drawing.Point( X, Y ) );
+
+      int     pixelWidth = Lookup.PixelWidth( Mode );
+
+      while ( pointsToCheck.Count != 0 )
+      {
+        System.Drawing.Point    point = pointsToCheck[pointsToCheck.Count - 1];
+        pointsToCheck.RemoveAt( pointsToCheck.Count - 1 );
+
+        if ( GetPixel( point.X, point.Y ) != ColorIndex )
+        {
+          SetPixel( point.X, point.Y, ColorIndex );
+
+          if ( ( point.X - pixelWidth >= 0 )
+          &&   ( GetPixel( point.X - pixelWidth, point.Y ) == origColor ) )
+          {
+            pointsToCheck.Add( new System.Drawing.Point( point.X - pixelWidth, point.Y ) );
+          }
+          if ( ( point.X + pixelWidth < Width )
+          &&   ( GetPixel( point.X + pixelWidth, point.Y ) == origColor ) )
+          {
+            pointsToCheck.Add( new System.Drawing.Point( point.X + pixelWidth, point.Y ) );
+          }
+          if ( ( point.Y > 0 )
+          &&   ( GetPixel( point.X, point.Y - 1 ) == origColor ) )
+          {
+            pointsToCheck.Add( new System.Drawing.Point( point.X, point.Y - 1 ) );
+          }
+          if ( ( point.Y + 1 < Height )
+          &&   ( GetPixel( point.X, point.Y + 1 ) == origColor ) )
+          {
+            pointsToCheck.Add( new System.Drawing.Point( point.X, point.Y + 1 ) );
+          }
+        }
+      }
+      return true;
     }
 
 
