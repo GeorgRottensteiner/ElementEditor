@@ -426,6 +426,7 @@ namespace C64Studio.Formats
       {
         Characters.Clear();
         Categories.Clear();
+        Colors.Palettes.Clear();
         TotalNumberOfCharacters = 256;
         Mode = TextCharMode.COMMODORE_HIRES;
 
@@ -457,12 +458,14 @@ namespace C64Studio.Formats
                   break;
                 case FileChunkConstants.PALETTE:
                   {
-                    Colors.Palette = new Palette( subMemIn.ReadInt32() );
-                    for ( int i = 0; i < Colors.Palette.NumColors; ++i )
+                    var pal = new Palette( subMemIn.ReadInt32() );
+                    for ( int i = 0; i < pal.NumColors; ++i )
                     {
-                      Colors.Palette.ColorValues[i] = subMemIn.ReadUInt32();
+                      pal.ColorValues[i] = subMemIn.ReadUInt32();
                     }
-                    Colors.Palette.CreateBrushes();
+                    pal.CreateBrushes();
+
+                    Colors.Palettes.Add( pal );
                   }
                   break;
                 case FileChunkConstants.CHARSET_EXPORT:

@@ -178,6 +178,7 @@ namespace ElementEditor
       comboProjectType.Items.Add( "Soulless 2" );
       comboProjectType.Items.Add( "Downhill Challenge" );
       comboProjectType.Items.Add( "MegaSisters" );
+      comboProjectType.Items.Add( "Generic (matches Barnsley Badger)" );
       comboProjectType.SelectedIndex = 0;
 
       comboScreenObjectFlags.Items.Add( "None" );
@@ -2890,6 +2891,7 @@ namespace ElementEditor
       if ( ( m_Project.ProjectType == "Catnipped" )
       ||   ( m_Project.ProjectType == "Wonderland" )
       ||   ( m_Project.ProjectType == "Soulless" )
+      ||   ( m_Project.ProjectType == "Generic (matches Barnsley Badger)" )
       ||   ( m_Project.ProjectType == "Barnsley Badger" ) )
       {
         return true;
@@ -2978,6 +2980,7 @@ namespace ElementEditor
       ||   ( m_Project.ProjectType == "Hyperion" )
       ||   ( m_Project.ProjectType == "Adventure" )
       ||   ( m_Project.ProjectType == "Barnsley Badger" )
+      ||   ( m_Project.ProjectType == "Generic (matches Barnsley Badger)" )
       ||   ( m_Project.ProjectType == "Wonderland" ) )
       {
         return true;
@@ -3051,7 +3054,8 @@ namespace ElementEditor
 
     private bool ProjectTypeSupportsElementLineRepeat()
     {
-      if ( m_Project.ProjectType == "Barnsley Badger" )    
+      if ( ( m_Project.ProjectType == "Barnsley Badger" )    
+      ||   ( m_Project.ProjectType == "Generic (matches Barnsley Badger)" ) )
       {
         return true;
       }
@@ -3067,6 +3071,7 @@ namespace ElementEditor
       ||   ( m_Project.ProjectType == "Rocky" )
       ||   ( m_Project.ProjectType == "Catnipped" )
       ||   ( m_Project.ProjectType == "Barnsley Badger" )
+      ||   ( m_Project.ProjectType == "Generic (matches Barnsley Badger)" )
       ||   ( m_Project.ProjectType == "Hyperion" )
       ||   ( m_Project.ProjectType == "Adventure" )
       ||   ( m_Project.ProjectType == "Wonderland" ) )    
@@ -3092,6 +3097,7 @@ namespace ElementEditor
     private bool ProjectTypeAllowsObjectBehaviour()
     {
       if ( ( m_Project.ProjectType == "Soulless" )
+      ||   ( m_Project.ProjectType == "Generic (matches Barnsley Badger)" )
       ||   ( m_Project.ProjectType == "Barnsley Badger" ) )
       {
         return true;
