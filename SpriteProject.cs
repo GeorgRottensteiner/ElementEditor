@@ -3,7 +3,7 @@ using RetroDevStudio.Types;
 using System.Collections.Generic;
 using System.ComponentModel;
 
-namespace C64Studio.Formats
+namespace RetroDevStudio.Formats
 {
   public class SpriteProject
   {

@@ -6,7 +6,7 @@ using System.Text;
 
 
 
-namespace C64Studio.Formats
+namespace RetroDevStudio.Formats
 {
   public class CharData
   {
@@ -313,24 +313,16 @@ namespace C64Studio.Formats
       {
         TotalNumberOfCharacters = 256;
 
-        string name = memIn.ReadString();
+        Name = memIn.ReadString();
         string charsetFilename = memIn.ReadString();
         for ( int i = 0; i < TotalNumberOfCharacters; ++i )
         {
           Characters[i].Tile.CustomColor = memIn.ReadInt32();
         }
 
-        bool    hasMC = false;
         for ( int i = 0; i < TotalNumberOfCharacters; ++i )
         {
           Characters[i].Tile.Mode = (GraphicTileMode)memIn.ReadUInt8();
-          if ( Characters[i].Tile.Mode == GraphicTileMode.COMMODORE_MULTICOLOR )
-          {
-            hasMC = true;
-          }
-          //Debug.Log( "Tile Mode " + memIn.ReadUInt8() );
-          //memIn.ReadUInt8();
-          //Characters[i].Tile.Mode = GraphicTileMode.Mode = (TextCharMode)memIn.ReadUInt8();
         }
         Colors.BackgroundColor  = memIn.ReadInt32();
         Colors.MultiColor1      = memIn.ReadInt32();
@@ -357,6 +349,7 @@ namespace C64Studio.Formats
 
         for ( int i = 0; i < TotalNumberOfCharacters; ++i )
         {
+          Characters[i].Tile.Mode = genericMulticolor ? GraphicTileMode.COMMODORE_MULTICOLOR : GraphicTileMode.COMMODORE_HIRES;
           Characters[i].Tile.Data = charsetData.SubBuffer( i * 8, 8 );
         }
 
@@ -416,8 +409,7 @@ namespace C64Studio.Formats
         }
 
         Mode = (TextCharMode)memIn.ReadInt32();
-
-        if ( hasMC )
+        if ( genericMulticolor )
         {
           Mode = TextCharMode.COMMODORE_MULTICOLOR;
         }
@@ -426,7 +418,6 @@ namespace C64Studio.Formats
       {
         Characters.Clear();
         Categories.Clear();
-        Colors.Palettes.Clear();
         TotalNumberOfCharacters = 256;
         Mode = TextCharMode.COMMODORE_HIRES;
 
@@ -458,14 +449,12 @@ namespace C64Studio.Formats
                   break;
                 case FileChunkConstants.PALETTE:
                   {
-                    var pal = new Palette( subMemIn.ReadInt32() );
-                    for ( int i = 0; i < pal.NumColors; ++i )
+                    Colors.Palette = new Palette( subMemIn.ReadInt32() );
+                    for ( int i = 0; i < Colors.Palette.NumColors; ++i )
                     {
-                      pal.ColorValues[i] = subMemIn.ReadUInt32();
+                      Colors.Palette.ColorValues[i] = subMemIn.ReadUInt32();
                     }
-                    pal.CreateBrushes();
-
-                    Colors.Palettes.Add( pal );
+                    Colors.Palette.CreateBrushes();
                   }
                   break;
                 case FileChunkConstants.CHARSET_EXPORT:

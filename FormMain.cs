@@ -6,8 +6,8 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using System.Linq;
-using C64Studio.Formats;
-using C64Studio.Displayer;
+using RetroDevStudio.Formats;
+using RetroDevStudio.Displayer;
 using RetroDevStudio.Types;
 using RetroDevStudio;
 
@@ -82,11 +82,11 @@ namespace ElementEditor
       public bool                   IsChar = true;
     }
 
-    
-    
+
+
     public Project                      m_Project = new Project();
     private string                      m_ProjectFilename = "";
-    private C64Studio.Formats.SpriteProject   m_SpriteProject = new C64Studio.Formats.SpriteProject();
+    private RetroDevStudio.Formats.SpriteProject   m_SpriteProject = new RetroDevStudio.Formats.SpriteProject();
 
     private Project.Screen              m_CurrentScreen = null;
 
@@ -284,7 +284,7 @@ namespace ElementEditor
       if ( pictureCharset.SelectedIndex != -1 )
       {
         if ( ( listElementChars.SelectedIndices.Count == 0 )
-        ||   ( m_CurrentEditedElement == null ) )
+        || ( m_CurrentEditedElement == null ) )
         {
           return;
         }
@@ -298,7 +298,7 @@ namespace ElementEditor
           RedrawElementPreview();
           Modified = true;
         }
-        
+
       }
     }
 
@@ -331,7 +331,7 @@ namespace ElementEditor
       //aScreen.Name = ( m_Project.Screens.Count + 1 ).ToString();
       aScreen.Name = editScreenName.Text;
 
-      comboScreens.Items.Add( new GR.Generic.Tupel<string,Project.Screen>( comboScreens.Items.Count.ToString() + ":" + aScreen.Name, aScreen ) );
+      comboScreens.Items.Add( new GR.Generic.Tupel<string, Project.Screen>( comboScreens.Items.Count.ToString() + ":" + aScreen.Name, aScreen ) );
       comboRegionScreens.Items.Add( new GR.Generic.Tupel<string, Project.Screen>( comboScreens.Items.Count.ToString() + ":" + aScreen.Name, aScreen ) );
       m_Project.Screens.Add( aScreen );
       Modified = true;
@@ -431,7 +431,7 @@ namespace ElementEditor
 
         editScreenConfig.Text = m_CurrentScreen.ConfigByte.ToString();
         if ( ( m_CurrentScreen.CharsetIndex < comboScreenCharset.Items.Count )
-        &&   ( m_CurrentScreen.CharsetIndex >= 0 ) )
+        && ( m_CurrentScreen.CharsetIndex >= 0 ) )
         {
           comboScreenCharset.SelectedIndex = m_CurrentScreen.CharsetIndex;
         }
@@ -447,7 +447,7 @@ namespace ElementEditor
       screenMCColor2.Invalidate();
 
       if ( ( comboElementCharset.SelectedIndex >= 0 )
-      &&   ( comboElementCharset.SelectedIndex < m_Project.Charsets.Count ) )
+      && ( comboElementCharset.SelectedIndex < m_Project.Charsets.Count ) )
       {
         SetActiveElementCharset( m_Project.Charsets[comboScreenCharset.SelectedIndex],
                                m_CurrentScreen.OverrideMC1 != -1 ? m_CurrentScreen.OverrideMC1 : m_Project.Charsets[comboScreenCharset.SelectedIndex].Colors.MultiColor1,
@@ -557,25 +557,25 @@ namespace ElementEditor
         for ( int j = 0; j < m_ScreenContent.Height; ++j )
         {
           CharacterInfo   emptyChar = new CharacterInfo();
-          emptyChar.Char  = m_Project.EmptyChar;
+          emptyChar.Char = m_Project.EmptyChar;
           emptyChar.Color = m_Project.EmptyColor;
 
-          m_ScreenContent[i,j] = emptyChar;
+          m_ScreenContent[i, j] = emptyChar;
         }
       }
 
       // draw empty chars
       if ( ( m_CurrentScreen != null )
-      &&   ( m_CurrentScreen.CharsetIndex >= 0 )
-      &&   ( m_CurrentScreen.CharsetIndex < m_Project.Charsets.Count ) )
+      && ( m_CurrentScreen.CharsetIndex >= 0 )
+      && ( m_CurrentScreen.CharsetIndex < m_Project.Charsets.Count ) )
       {
         CharsetProject charSet = m_Project.Charsets[m_CurrentScreen.CharsetIndex];
 
         for ( int i = 0; i < charSet.Colors.Palette.NumColors; ++i )
         {
-          pictureEditor.DisplayPage.SetPaletteColor( i, 
-            (byte)( ( charSet.Colors.Palette.ColorValues[i] & 0x00ff0000 ) >> 16 ), 
-            (byte)( ( charSet.Colors.Palette.ColorValues[i] & 0x0000ff00 ) >> 8 ), 
+          pictureEditor.DisplayPage.SetPaletteColor( i,
+            (byte)( ( charSet.Colors.Palette.ColorValues[i] & 0x00ff0000 ) >> 16 ),
+            (byte)( ( charSet.Colors.Palette.ColorValues[i] & 0x0000ff00 ) >> 8 ),
             (byte)( charSet.Colors.Palette.ColorValues[i] & 0xff ) );
         }
 
@@ -589,8 +589,8 @@ namespace ElementEditor
       }
 
       if ( ( m_CurrentScreen != null )
-      &&   ( m_Project.ProjectType == "Wonderland" )
-      &&   ( comboScreens.SelectedIndex >= 52 ) )
+      && ( m_Project.ProjectType == "Wonderland" )
+      && ( comboScreens.SelectedIndex >= 52 ) )
       {
         // special case part building
         //      LL        Looks right (0 to 3)
@@ -694,8 +694,8 @@ namespace ElementEditor
     private void DrawScreen( Project.Screen Screen )
     {
       if ( ( Screen != null )
-      &&   ( Screen.CharsetIndex >= 0 )
-      &&   ( Screen.CharsetIndex < m_Project.Charsets.Count ) )
+      && ( Screen.CharsetIndex >= 0 )
+      && ( Screen.CharsetIndex < m_Project.Charsets.Count ) )
       {
         CharsetProject charSet = m_Project.Charsets[Screen.CharsetIndex];
 
@@ -887,7 +887,7 @@ namespace ElementEditor
               if ( element.Object.SpriteImage != null )
               {
                 pictureEditor.DisplayPage.DrawFromImage( element.Object.SpriteImage,
-                                                               ( element.X - m_ScreenOffsetX ) * 8 - 8, 
+                                                               ( element.X - m_ScreenOffsetX ) * 8 - 8,
                                                                ( element.Y - m_ScreenOffsetY ) * 8 - 13 );
               }
               break;
@@ -930,6 +930,7 @@ namespace ElementEditor
         return;
       }
       CharsetProject charSet = m_Project.Charsets[m_CurrentScreen.CharsetIndex];
+      var charsetInfo = m_Project.CharsetProjects[m_CurrentScreen.CharsetIndex];
 
       for ( int i = 0; i < Element.Characters.Width; ++i )
       {
@@ -944,9 +945,14 @@ namespace ElementEditor
           }
           if ( charSet != null )
           {
-            CharacterDisplayer.DisplayChar( charSet, Element.Characters[i, j].Char, pictureEditor.DisplayPage, ( targetX - m_ScreenOffsetX ) * 8, ( targetY - m_ScreenOffsetY ) * 8, Element.Characters[i, j].Color );
+            CharacterDisplayer.DisplayChar( charSet, Element.Characters[i, j].Char, pictureEditor.DisplayPage, ( targetX - m_ScreenOffsetX ) * 8, ( targetY - m_ScreenOffsetY ) * 8, Element.Characters[i, j].Color,
+              charSet.Colors.BackgroundColor,
+              charSet.Colors.MultiColor1,
+              charSet.Colors.MultiColor2,
+              charSet.Colors.BGColor4,
+              charsetInfo.Multicolor ? TextCharMode.COMMODORE_MULTICOLOR : TextCharMode.COMMODORE_HIRES );
           }
-          m_ScreenContent[targetX, targetY].Char  = Element.Characters[i, j].Char;
+          m_ScreenContent[targetX, targetY].Char = Element.Characters[i, j].Char;
           m_ScreenContent[targetX, targetY].Color = Element.Characters[i, j].Color;
           m_ScreenContent[targetX, targetY].ScreenElement = ScreenElement;
         }
@@ -978,11 +984,18 @@ namespace ElementEditor
         return;
       }
       CharsetProject charSet = m_Project.Charsets[m_CurrentEditedElement.CharsetIndex];
+      var charsetInfo = m_Project.CharsetProjects[m_CurrentEditedElement.CharsetIndex];
       for ( int i = 0; i < m_CurrentEditedElement.Characters.Width; ++i )
       {
         for ( int j = 0; j < m_CurrentEditedElement.Characters.Height; ++j )
         {
-          CharacterDisplayer.DisplayChar( charSet, m_CurrentEditedElement.Characters[i, j].Char, pictureElement.DisplayPage, i * 8, j * 8, m_CurrentEditedElement.Characters[i, j].Color );
+          CharacterDisplayer.DisplayChar( charSet, m_CurrentEditedElement.Characters[i, j].Char, pictureElement.DisplayPage, i * 8, j * 8,
+                                          m_CurrentEditedElement.Characters[i, j].Color,
+                                          charSet.Colors.BackgroundColor,
+                                          charSet.Colors.MultiColor1,
+                                          charSet.Colors.MultiColor2,
+                                          charSet.Colors.BGColor4,
+                                          charsetInfo.Multicolor ? TextCharMode.COMMODORE_MULTICOLOR : TextCharMode.COMMODORE_HIRES );
         }
       }
       pictureElement.Invalidate();
@@ -1044,7 +1057,12 @@ namespace ElementEditor
                                       CharIndex,
                                       CharSet.Characters[CharIndex].Tile.Image,
                                       0, 0,
-                                      AlternativeColor );
+                                      AlternativeColor,
+                                      CharSet.Colors.BackgroundColor,
+                                      CharSet.Colors.MultiColor1,
+                                      CharSet.Colors.MultiColor2,
+                                      CharSet.Colors.BGColor4,
+                                      Multicolor ? TextCharMode.COMMODORE_MULTICOLOR : TextCharMode.COMMODORE_HIRES );
       /*
       if ( ( !Multicolor )
       ||   ( AlternativeColor < 8 ) )
@@ -1166,7 +1184,7 @@ namespace ElementEditor
       {
         for ( int i = 0; i < 16; ++i )
         {
-          pictureCharset.Items.Add( i + j* 16, CharSet.Characters[i + j * 16].Tile.Image );
+          pictureCharset.Items.Add( i + j * 16, CharSet.Characters[i + j * 16].Tile.Image );
         }
       }
       RedrawScreen();
@@ -1246,7 +1264,7 @@ namespace ElementEditor
         comboProjectType.SelectedItem = m_Project.ProjectType;
 
         if ( ( m_Project.CharsetProjects.Count == 0 )
-        &&   ( !string.IsNullOrEmpty( m_Project.OldCharsetProjectFilename ) ) )
+        && ( !string.IsNullOrEmpty( m_Project.OldCharsetProjectFilename ) ) )
         {
           string fullPath = GR.Path.Append( GR.Path.RemoveFileSpec( Filename ), m_Project.OldCharsetProjectFilename );
           CharsetProject charSet = OpenCharsetProject( fullPath );
@@ -1322,10 +1340,10 @@ namespace ElementEditor
             foreach ( Project.ScreenElement element in screen.DisplayedElements )
             {
               if ( ( element.Type == Project.ScreenElementType.LD_OBJECT )
-              ||   ( element.Type == Project.ScreenElementType.LD_SPAWN_SPOT ) )
+              || ( element.Type == Project.ScreenElementType.LD_SPAWN_SPOT ) )
               {
                 if ( ( element.Object != null )
-                &&   ( element.Object.TemplateIndex != -1 ) )
+                && ( element.Object.TemplateIndex != -1 ) )
                 {
                   element.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile.Image );
                   RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile,
@@ -1343,7 +1361,7 @@ namespace ElementEditor
       {
         for ( int i = 0; i < m_Project.Charsets[0].Colors.Palette.NumColors; ++i )
         {
-          pictureEditor.DisplayPage.SetPaletteColor( i,   
+          pictureEditor.DisplayPage.SetPaletteColor( i,
                                                      (byte)( ( m_Project.Charsets[0].Colors.Palette.ColorValues[i] & 0xff0000 ) >> 16 ),
                                                      (byte)( ( m_Project.Charsets[0].Colors.Palette.ColorValues[i] & 0x00ff00 ) >> 8 ),
                                                      (byte)( ( m_Project.Charsets[0].Colors.Palette.ColorValues[i] & 0x0000ff ) >> 0 ) );
@@ -1351,6 +1369,7 @@ namespace ElementEditor
 
         SetActiveElementCharset( m_Project.Charsets[0], m_Project.Charsets[0].Colors.MultiColor1, m_Project.Charsets[0].Colors.MultiColor2, m_Project.CharsetProjects[0].Multicolor );
       }
+      checkMCMode.Checked = m_Project.CharsetProjects[0].Multicolor;
       RedrawMap();
       Modified = false;
     }
@@ -1589,7 +1608,7 @@ namespace ElementEditor
         return;
       }
       string selItem = listAvailableElements.Items[listAvailableElements.SelectedIndex].ToString();
-      m_CurrentEditedElement = m_Project.ElementFromString( selItem  );
+      m_CurrentEditedElement = m_Project.ElementFromString( selItem );
 
       listElementChars.Items.Clear();
       for ( int j = 0; j < m_CurrentEditedElement.Characters.Height; ++j )
@@ -1616,7 +1635,7 @@ namespace ElementEditor
     private void comboChars_SelectedIndexChanged( object sender, EventArgs e )
     {
       if ( ( listElementChars.SelectedIndices.Count == 0 )
-      ||   ( m_CurrentEditedElement == null ) )
+      || ( m_CurrentEditedElement == null ) )
       {
         return;
       }
@@ -1638,7 +1657,7 @@ namespace ElementEditor
     private void comboColor_SelectedIndexChanged( object sender, EventArgs e )
     {
       if ( ( listElementChars.SelectedIndices.Count == 0 )
-      ||   ( m_CurrentEditedElement == null ) )
+      || ( m_CurrentEditedElement == null ) )
       {
         return;
       }
@@ -1659,7 +1678,7 @@ namespace ElementEditor
     private void listElementChars_SelectedIndexChanged( object sender, EventArgs e )
     {
       if ( ( listElementChars.SelectedIndices.Count == 0 )
-      ||   ( m_CurrentEditedElement == null ) )
+      || ( m_CurrentEditedElement == null ) )
       {
         return;
       }
@@ -1691,7 +1710,7 @@ namespace ElementEditor
 
       bool  canMoveUp = false;
       if ( ( listScreenElements.SelectedIndices.Count > 0 )
-      &&   ( listScreenElements.SelectedIndices[0] > 0 ) )
+      && ( listScreenElements.SelectedIndices[0] > 0 ) )
       {
         canMoveUp = true;
       }
@@ -2354,7 +2373,7 @@ namespace ElementEditor
     private void btnAutoInc_Click( object sender, EventArgs e )
     {
       if ( ( listElementChars.SelectedIndices.Count == 0 )
-      ||   ( m_CurrentEditedElement == null ) )
+      || ( m_CurrentEditedElement == null ) )
       {
         return;
       }
@@ -2381,7 +2400,7 @@ namespace ElementEditor
     private void btnElementDown_Click( object sender, EventArgs e )
     {
       if ( ( listScreenElements.SelectedIndices.Count > 0 )
-      &&   ( listScreenElements.SelectedIndices[0] + 1 < m_CurrentScreen.DisplayedElements.Count ) )
+      && ( listScreenElements.SelectedIndices[0] + 1 < m_CurrentScreen.DisplayedElements.Count ) )
       {
         int     origIndex = listScreenElements.SelectedIndices[0];
 
@@ -2409,7 +2428,7 @@ namespace ElementEditor
     private void btnElementUp_Click( object sender, EventArgs e )
     {
       if ( ( listScreenElements.SelectedIndices.Count > 0 )
-      &&   ( listScreenElements.SelectedIndices[0] > 0 ) )
+      && ( listScreenElements.SelectedIndices[0] > 0 ) )
       {
         int     origIndex = listScreenElements.SelectedIndices[0];
 
@@ -2450,7 +2469,7 @@ namespace ElementEditor
 
           ( (GR.Generic.Tupel<string, Project.Screen>)comboRegionScreens.Items[selIndex] ).first = selIndex.ToString() + ":" + m_CurrentScreen.Name;
           comboRegionScreens.Items[selIndex] = comboRegionScreens.Items[selIndex];
-           
+
           Modified = true;
         }
       }
@@ -2495,7 +2514,7 @@ namespace ElementEditor
           if ( screenElement.Object.TemplateIndex != -1 )
           {
             RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Tile,
-                                m_SpriteProject.Colors.Palette, 
+                                m_SpriteProject.Colors.Palette,
                                 screenElement.Object.SpriteImage,
                                 m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Mode,
                                 screenElement.Object.Color );
@@ -2559,7 +2578,7 @@ namespace ElementEditor
 
     private void CollapseBuffers( System.Collections.Generic.List<DataInfo> Buffers )
     {
-      redo_from_start:;
+redo_from_start:;
 
       foreach ( DataInfo data in Buffers )
       {
@@ -2569,7 +2588,7 @@ namespace ElementEditor
           {
             GR.Memory.ByteBuffer    sourceBuffer = data.Data;
             if ( ( data.ReplacementData != null )
-            ||   ( otherData.ReplacementData != null ) )
+            || ( otherData.ReplacementData != null ) )
             {
               // don't try again
               continue;
@@ -2622,8 +2641,8 @@ namespace ElementEditor
       foreach ( DataInfo data in Buffers )
       {
         if ( ( data.ReplacementData != null )
-        ||   ( ( data.PreviousData != null )
-        &&     ( data.NextData != null ) ) )
+        || ( ( data.PreviousData != null )
+        && ( data.NextData != null ) ) )
         {
           continue;
         }
@@ -2636,9 +2655,9 @@ namespace ElementEditor
         foreach ( DataInfo otherData in Buffers )
         {
           if ( ( otherData.ReplacementData != null )
-          ||   ( data == otherData )
-          ||   ( ( otherData.PreviousData != null )
-          &&     ( otherData.NextData != null ) ) )
+          || ( data == otherData )
+          || ( ( otherData.PreviousData != null )
+          && ( otherData.NextData != null ) ) )
           {
             continue;
           }
@@ -2674,13 +2693,13 @@ namespace ElementEditor
 
           // both buffers could be connected
           if ( ( data.PreviousData == null )
-          &&   ( otherData.NextData == null ) )
+          && ( otherData.NextData == null ) )
           {
             // check to left
             int     numBytesLeft = 0;
 
             while ( ( numBytesLeft < data.Data.Length )
-            &&      ( numBytesLeft < otherData.Data.Length ) )
+            && ( numBytesLeft < otherData.Data.Length ) )
             {
               if ( otherData.Data.SubBuffer( (int)otherData.Data.Length - numBytesLeft - 1 ).Compare( data.Data.SubBuffer( 0, numBytesLeft + 1 ) ) == 0 )
               {
@@ -2698,13 +2717,13 @@ namespace ElementEditor
             }
           }
           if ( ( data.NextData == null )
-          &&   ( otherData.PreviousData == null ) )
+          && ( otherData.PreviousData == null ) )
           {
             // check to right
             int     numBytesRight = 0;
 
             while ( ( numBytesRight < data.Data.Length )
-            &&      ( numBytesRight < otherData.Data.Length ) )
+            && ( numBytesRight < otherData.Data.Length ) )
             {
               if ( data.Data.SubBuffer( (int)data.Data.Length - numBytesRight - 1 ).Compare( otherData.Data.SubBuffer( 0, numBytesRight + 1 ) ) == 0 )
               {
@@ -2723,7 +2742,7 @@ namespace ElementEditor
           }
 
           if ( ( maxNumBytesL != 0 )
-          ||   ( maxNumBytesR != 0 ) )
+          || ( maxNumBytesR != 0 ) )
           {
             if ( maxNumBytesL > maxNumBytesR )
             {
@@ -2889,10 +2908,10 @@ namespace ElementEditor
     private bool ProjectTypeAllowsMoreThan256Elements()
     {
       if ( ( m_Project.ProjectType == "Catnipped" )
-      ||   ( m_Project.ProjectType == "Wonderland" )
-      ||   ( m_Project.ProjectType == "Soulless" )
-      ||   ( m_Project.ProjectType == "Generic (matches Barnsley Badger)" )
-      ||   ( m_Project.ProjectType == "Barnsley Badger" ) )
+      || ( m_Project.ProjectType == "Wonderland" )
+      || ( m_Project.ProjectType == "Soulless" )
+      || ( m_Project.ProjectType == "Generic (matches Barnsley Badger)" )
+      || ( m_Project.ProjectType == "Barnsley Badger" ) )
       {
         return true;
       }
@@ -2904,7 +2923,7 @@ namespace ElementEditor
     private bool ProjectTypeAllowsFlagsInXPos()
     {
       if ( ( m_Project.ProjectType == "Hyperion" )
-      ||   ( m_Project.ProjectType == "Adventure" ) )
+      || ( m_Project.ProjectType == "Adventure" ) )
       {
         return true;
       }
@@ -2916,7 +2935,7 @@ namespace ElementEditor
     private bool ProjectTypeAllowsFlagsInElementType()
     {
       if ( ( m_Project.ProjectType == "Hyperion" )
-      ||   ( m_Project.ProjectType == "Adventure" ) )
+      || ( m_Project.ProjectType == "Adventure" ) )
       {
         return true;
       }
@@ -2939,7 +2958,7 @@ namespace ElementEditor
     private bool ProjectTypeHasCompactedObjects()
     {
       if ( ( m_Project.ProjectType == "Downhill Challenge" )
-      ||   ( m_Project.ProjectType == "MegaSisters" ) )
+      || ( m_Project.ProjectType == "MegaSisters" ) )
       {
         return true;
       }
@@ -2951,7 +2970,7 @@ namespace ElementEditor
     private bool ProjectTypeAllowsColorInElements()
     {
       if ( ( m_Project.ProjectType == "Cartridge" )
-      ||   ( m_Project.ProjectType == "MegaSisters" ) )
+      || ( m_Project.ProjectType == "MegaSisters" ) )
       {
         return false;
       }
@@ -2974,14 +2993,14 @@ namespace ElementEditor
     private bool ProjectTypeAllowsPrimitiveTypeReuse()
     {
       if ( ( m_Project.ProjectType == "Soulless" )
-      ||   ( m_Project.ProjectType == "Soulless 2" )
-      ||   ( m_Project.ProjectType == "Rocky" )
-      ||   ( m_Project.ProjectType == "Supernatural" )
-      ||   ( m_Project.ProjectType == "Hyperion" )
-      ||   ( m_Project.ProjectType == "Adventure" )
-      ||   ( m_Project.ProjectType == "Barnsley Badger" )
-      ||   ( m_Project.ProjectType == "Generic (matches Barnsley Badger)" )
-      ||   ( m_Project.ProjectType == "Wonderland" ) )
+      || ( m_Project.ProjectType == "Soulless 2" )
+      || ( m_Project.ProjectType == "Rocky" )
+      || ( m_Project.ProjectType == "Supernatural" )
+      || ( m_Project.ProjectType == "Hyperion" )
+      || ( m_Project.ProjectType == "Adventure" )
+      || ( m_Project.ProjectType == "Generic (matches Barnsley Badger)" )
+      || ( m_Project.ProjectType == "Barnsley Badger" )
+      || ( m_Project.ProjectType == "Wonderland" ) )
       {
         return true;
       }
@@ -2993,7 +3012,7 @@ namespace ElementEditor
     private bool ProjectTypeAllowsMapData()
     {
       if ( ( m_Project.ProjectType == "Hyperion" )
-      ||   ( m_Project.ProjectType == "Adventure" ) )
+      || ( m_Project.ProjectType == "Adventure" ) )
       {
         return true;
       }
@@ -3016,9 +3035,9 @@ namespace ElementEditor
     private bool ProjectTypeWantsScreenDataInHiLoTable()
     {
       if ( ( m_Project.ProjectType == "Cartridge" )
-      ||   ( m_Project.ProjectType == "Hyperion" )
-      ||   ( m_Project.ProjectType == "Adventure" )
-      ||   ( m_Project.ProjectType == "Wonderland" ) )
+      || ( m_Project.ProjectType == "Hyperion" )
+      || ( m_Project.ProjectType == "Adventure" )
+      || ( m_Project.ProjectType == "Wonderland" ) )
       {
         return true;
       }
@@ -3030,7 +3049,7 @@ namespace ElementEditor
     private bool ProjectTypeWantsElementDataColumnRow()
     {
       if ( ( m_Project.ProjectType == "Cartridge" )
-      ||   ( m_Project.ProjectType == "MegaSisters" ) )
+      || ( m_Project.ProjectType == "MegaSisters" ) )
       {
         return true;
       }
@@ -3042,8 +3061,8 @@ namespace ElementEditor
     private bool ProjectTypeWantsScreenSize()
     {
       if ( ( m_Project.ProjectType == "Cartridge" )
-      ||   ( m_Project.ProjectType == "Downhill Challenge" )
-      ||   ( m_Project.ProjectType == "MegaSisters" ) )
+      || ( m_Project.ProjectType == "Downhill Challenge" )
+      || ( m_Project.ProjectType == "MegaSisters" ) )
       {
         return true;
       }
@@ -3054,8 +3073,8 @@ namespace ElementEditor
 
     private bool ProjectTypeSupportsElementLineRepeat()
     {
-      if ( ( m_Project.ProjectType == "Barnsley Badger" )    
-      ||   ( m_Project.ProjectType == "Generic (matches Barnsley Badger)" ) )
+      if ( ( m_Project.ProjectType == "Barnsley Badger" )
+      || ( m_Project.ProjectType == "Generic (matches Barnsley Badger)" ) )
       {
         return true;
       }
@@ -3067,14 +3086,14 @@ namespace ElementEditor
     private bool ProjectTypeAllowsCombiningYRepeatsWith3Bits()
     {
       if ( ( m_Project.ProjectType == "Soulless" )
-      ||   ( m_Project.ProjectType == "Soulless 2" )
-      ||   ( m_Project.ProjectType == "Rocky" )
-      ||   ( m_Project.ProjectType == "Catnipped" )
-      ||   ( m_Project.ProjectType == "Barnsley Badger" )
-      ||   ( m_Project.ProjectType == "Generic (matches Barnsley Badger)" )
-      ||   ( m_Project.ProjectType == "Hyperion" )
-      ||   ( m_Project.ProjectType == "Adventure" )
-      ||   ( m_Project.ProjectType == "Wonderland" ) )    
+      || ( m_Project.ProjectType == "Soulless 2" )
+      || ( m_Project.ProjectType == "Rocky" )
+      || ( m_Project.ProjectType == "Catnipped" )
+      || ( m_Project.ProjectType == "Barnsley Badger" )
+      || ( m_Project.ProjectType == "Generic (matches Barnsley Badger)" )
+      || ( m_Project.ProjectType == "Hyperion" )
+      || ( m_Project.ProjectType == "Adventure" )
+      || ( m_Project.ProjectType == "Wonderland" ) )
       {
         return true;
       }
@@ -3097,8 +3116,7 @@ namespace ElementEditor
     private bool ProjectTypeAllowsObjectBehaviour()
     {
       if ( ( m_Project.ProjectType == "Soulless" )
-      ||   ( m_Project.ProjectType == "Generic (matches Barnsley Badger)" )
-      ||   ( m_Project.ProjectType == "Barnsley Badger" ) )
+      || ( m_Project.ProjectType == "Barnsley Badger" ) )
       {
         return true;
       }
@@ -3110,7 +3128,7 @@ namespace ElementEditor
     private bool ProjectTypeAllowsObjectData()
     {
       if ( ( m_Project.ProjectType == "Hyperion" )
-      ||   ( m_Project.ProjectType == "Adventure" ) )
+      || ( m_Project.ProjectType == "Adventure" ) )
       {
         return true;
       }
@@ -3133,10 +3151,10 @@ namespace ElementEditor
     private bool ProjectTypeAllowsDoorWithTarget()
     {
       if ( ( m_Project.ProjectType != "Soulless" )
-      &&   ( m_Project.ProjectType != "Soulless 2" )
-      &&   ( m_Project.ProjectType != "Hyperion" )
-      &&   ( m_Project.ProjectType != "Adventure" )
-      &&   ( m_Project.ProjectType != "Wonderland" ) )
+      && ( m_Project.ProjectType != "Soulless 2" )
+      && ( m_Project.ProjectType != "Hyperion" )
+      && ( m_Project.ProjectType != "Adventure" )
+      && ( m_Project.ProjectType != "Wonderland" ) )
       {
         return true;
       }
@@ -3148,8 +3166,8 @@ namespace ElementEditor
     private bool ProjectTypeHasSimpleDoors()
     {
       if ( ( m_Project.ProjectType == "Hyperion" )
-      ||   ( m_Project.ProjectType == "Adventure" )
-      ||   ( m_Project.ProjectType == "Wonderland" ) )
+      || ( m_Project.ProjectType == "Adventure" )
+      || ( m_Project.ProjectType == "Wonderland" ) )
       {
         return true;
       }
@@ -3165,7 +3183,7 @@ namespace ElementEditor
         return "";
       }
       StringBuilder sb = new StringBuilder();
-      
+
       sb.Append( "          !byte " );
 
       for ( int i = 0; i < Data.Length; ++i )
@@ -3216,9 +3234,9 @@ namespace ElementEditor
           endX += region.Screens.Count - 1;
         }
         if ( ( mapX >= region.DisplayX )
-        &&   ( mapX <= endX )
-        &&   ( mapY >= region.DisplayY )
-        &&   ( mapY <= endY ) )
+        && ( mapX <= endX )
+        && ( mapY >= region.DisplayY )
+        && ( mapY <= endY ) )
         {
           TargetRegion = regionIndex;
           TargetScreenNumber = ( mapX - region.DisplayX ) + ( mapY - region.DisplayY );
@@ -3366,8 +3384,8 @@ namespace ElementEditor
         //Debug.Log( "Checking " + data.Name );
 
         if ( ( data.ReplacementData != null )
-        &&   ( data.NextData == null )
-        &&   ( data.PreviousData == null ) )
+        && ( data.NextData == null )
+        && ( data.PreviousData == null ) )
         {
           //Debug.Log( "Removing data " + data.Name + " with replacement " + data.ReplacementData.Name );
           workList.RemoveAt( 0 );
@@ -3386,7 +3404,7 @@ namespace ElementEditor
         result += data.Name + "\r\n";
         result += "!byte ";
 
-        insert_now:;
+insert_now:;
         if ( data.NextData != null )
         {
           for ( int i = 0; i < data.Data.Length; ++i )
@@ -3549,16 +3567,16 @@ namespace ElementEditor
           ++totalScreenIndex;
           continue;
         }
-        result += m_Project.ExportPrefix + "_LEVEL_" + screenIndex.ToString() +" ;" + screen.Name + "\r\n";
+        result += m_Project.ExportPrefix + "_LEVEL_" + screenIndex.ToString() + " ;" + screen.Name + "\r\n";
         if ( ( ProjectTypeWantsScreenSize() )
-        &&   ( !ProjectTypeRequiresSortedElementsByX() ) 
-        &&   ( !ProjectTypeRequiresSortedElementsByY() ) )
+        && ( !ProjectTypeRequiresSortedElementsByX() )
+        && ( !ProjectTypeRequiresSortedElementsByY() ) )
         {
           // scroll size
           result += "          !byte " + screen.Width.ToString() + "\r\n";
         }
         else if ( ( ProjectTypeWantsScreenSize() )
-        &&        ( ProjectTypeRequiresSortedElementsByX() ) )
+        && ( ProjectTypeRequiresSortedElementsByX() ) )
         {
           // scroll size
           result += "          !word " + screen.Width.ToString() + "\r\n";
@@ -3598,7 +3616,7 @@ namespace ElementEditor
         foreach ( Project.ScreenElement screenElement in levelElements )
         {
           if ( ( ProjectTypeRequiresSortedElementsByX() )
-          &&   ( screenElement.X > currentElementX ) )
+          && ( screenElement.X > currentElementX ) )
           {
             int     delta = screenElement.X - currentElementX;
 
@@ -3614,7 +3632,7 @@ namespace ElementEditor
             currentElementX = screenElement.X;
           }
           if ( ( ProjectTypeRequiresSortedElementsByY() )
-          &&   ( screenElement.Y > currentElementY ) )
+          && ( screenElement.Y > currentElementY ) )
           {
             result += "          !byte LDF_Y_POS + " + ( screenElement.Y - currentElementY ).ToString() + "; " + screenElement.Y.ToString() + "\r\n";
             currentElementY = screenElement.Y;
@@ -3643,7 +3661,7 @@ namespace ElementEditor
                 int yPos = screenElement.Y;
 
                 if ( ( ProjectTypeRequiresSortedElementsByX() )
-                ||   ( ProjectTypeRequiresSortedElementsByY() ) )
+                || ( ProjectTypeRequiresSortedElementsByY() ) )
                 {
                   if ( elementName == prevElementName )
                   {
@@ -3652,13 +3670,13 @@ namespace ElementEditor
                   }
                   else
                   {
-                    exportData = "LDF_ELEMENT + " + yPos.ToString() + "," + elementName +  "\r\n";
+                    exportData = "LDF_ELEMENT + " + yPos.ToString() + "," + elementName + "\r\n";
                   }
                 }
                 else
                 {
                   if ( ( ProjectTypeAllowsMoreThan256Elements() )
-                  &&   ( elementUseIndex >= 256 ) )
+                  && ( elementUseIndex >= 256 ) )
                   {
                     xPos |= 0x40;
                     elementName = "( " + elementName + " & $ff )";
@@ -3721,7 +3739,7 @@ namespace ElementEditor
                   {
                     bool  repeatElement = false;
                     if ( ( ProjectTypeSupportsElementLineRepeat() )
-                    &&   ( elementName == prevElementName ) )
+                    && ( elementName == prevElementName ) )
                     {
                       exportElementType = "LD_ELEMENT_LINE_H_REPEAT";
                       repeatElement = true;
@@ -3732,7 +3750,7 @@ namespace ElementEditor
                     }
 
                     if ( ( ProjectTypeAllowsMoreThan256Elements() )
-                    &&   ( elementUseIndex >= 256 ) )
+                    && ( elementUseIndex >= 256 ) )
                     {
                       xPos |= 0x40;
                       elementName = "( " + elementName + " & $ff )";
@@ -3741,7 +3759,7 @@ namespace ElementEditor
                     {
                       xPos |= ( screenElement.Flags << 6 );
                     }
-                  
+
 
                     if ( screenElement.Repeats <= 7 )
                     {
@@ -3819,7 +3837,7 @@ namespace ElementEditor
                     }
 
                     if ( ( ProjectTypeAllowsMoreThan256Elements() )
-                    &&   ( elementUseIndex >= 256 ) )
+                    && ( elementUseIndex >= 256 ) )
                     {
                       xPos |= 0x40;
                       elementName = "( " + elementName + " & $ff )";
@@ -3874,7 +3892,7 @@ namespace ElementEditor
                 else
                 {
                   if ( ( ProjectTypeAllowsMoreThan256Elements() )
-                  &&   ( elementUseIndex >= 256 ) )
+                  && ( elementUseIndex >= 256 ) )
                   {
                     xPos |= 0x40;
                     elementName = "( " + elementName + " & $ff )";
@@ -3957,7 +3975,7 @@ namespace ElementEditor
                 }
 
                 if ( ( ProjectTypeAllowsMoreThan256Elements() )
-                &&   ( elementUseIndex >= 256 ) )
+                && ( elementUseIndex >= 256 ) )
                 {
                   xPos |= 0x40;
                   elementName = "( " + elementName + " & $ff )";
@@ -4056,7 +4074,7 @@ namespace ElementEditor
 
                   exportData += screenElement.Object.Speed.ToString() + ",";
                   if ( ( screenElement.Object.MoveBorderLeft != 0 )
-                  ||   ( screenElement.Object.MoveBorderRight != 0 ) )
+                  || ( screenElement.Object.MoveBorderRight != 0 ) )
                   {
                     exportData += ( screenElement.X - screenElement.Object.MoveBorderLeft ).ToString() + "," + ( screenElement.X + screenElement.Object.MoveBorderRight ).ToString();
                   }
@@ -4094,7 +4112,7 @@ namespace ElementEditor
 
                   exportData += screenElement.Object.Speed.ToString() + ",";
                   if ( ( screenElement.Object.MoveBorderLeft != 0 )
-                  ||   ( screenElement.Object.MoveBorderRight != 0 ) )
+                  || ( screenElement.Object.MoveBorderRight != 0 ) )
                   {
                     exportData += ( screenElement.X - screenElement.Object.MoveBorderLeft ).ToString() + "," + ( screenElement.X + screenElement.Object.MoveBorderRight ).ToString();
                   }
@@ -4254,7 +4272,7 @@ namespace ElementEditor
                 int yPos = screenElement.Y;
 
                 if ( ( ProjectTypeAllowsMoreThan256Elements() )
-                &&   ( elementUseIndex >= 256 ) )
+                && ( elementUseIndex >= 256 ) )
                 {
                   xPos |= 0x40;
                   elementName = "( " + elementName + " & $ff )";
@@ -4298,7 +4316,7 @@ namespace ElementEditor
             }
           }
           if ( ( ProjectTypeRequiresSortedElementsByX() )
-          ||   ( ProjectTypeRequiresSortedElementsByY() ) )
+          || ( ProjectTypeRequiresSortedElementsByY() ) )
           {
             result += exportData;
           }
@@ -4605,10 +4623,10 @@ namespace ElementEditor
         if ( ( Buttons & MouseButtons.Left ) == MouseButtons.Left )
         {
           if ( ( m_DraggedScreenElement.X != realX - m_DragOffsetX )
-          ||   ( m_DraggedScreenElement.Y != realY - m_DragOffsetY ) )
+          || ( m_DraggedScreenElement.Y != realY - m_DragOffsetY ) )
           {
             if ( ( realX >= 0 )
-            &&   ( realY >= 0 ) )
+            && ( realY >= 0 ) )
             {
               m_DraggedScreenElement.X = realX - m_DragOffsetX;
               m_DraggedScreenElement.Y = realY - m_DragOffsetY;
@@ -4634,11 +4652,11 @@ namespace ElementEditor
         foreach ( Project.ScreenElement itElement in m_CurrentScreen.DisplayedElements )
         {
           if ( ( ( itElement.Type == Project.ScreenElementType.LD_OBJECT )
-          ||     ( itElement.Type == Project.ScreenElementType.LD_SPAWN_SPOT ) )
-          &&   ( realPixelX >= itElement.X * 8 - 8 )
-          &&   ( realPixelX < itElement.X * 8 + 24 - 8 )
-          &&   ( realPixelY >= itElement.Y * 8 - 13 )
-          &&   ( realPixelY < itElement.Y * 8 + 21 - 13 ) )
+          || ( itElement.Type == Project.ScreenElementType.LD_SPAWN_SPOT ) )
+          && ( realPixelX >= itElement.X * 8 - 8 )
+          && ( realPixelX < itElement.X * 8 + 24 - 8 )
+          && ( realPixelY >= itElement.Y * 8 - 13 )
+          && ( realPixelY < itElement.Y * 8 + 21 - 13 ) )
           {
             screenElement = itElement;
             break;
@@ -4746,7 +4764,7 @@ namespace ElementEditor
               m_DraggedScreenElement.Object.TemplateIndex = screenElement.Object.TemplateIndex;
               m_DraggedScreenElement.Object.SpriteImage = new GR.Image.MemoryImage( screenElement.Object.SpriteImage );
               RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[m_DraggedScreenElement.Object.TemplateIndex].StartSprite].Tile,
-                                  m_SpriteProject.Colors.Palette, 
+                                  m_SpriteProject.Colors.Palette,
                                   m_DraggedScreenElement.Object.SpriteImage,
                                   m_SpriteProject.Sprites[m_Project.ObjectTemplates[m_DraggedScreenElement.Object.TemplateIndex].StartSprite].Mode,
                                   m_DraggedScreenElement.Object.Color );
@@ -4852,7 +4870,7 @@ namespace ElementEditor
     private bool CombineElements( Project.Screen Screen, Project.ScreenElement Element1, Project.ScreenElement Element2, int X, int Y )
     {
       if ( ( Element2.X == X )
-      &&   ( Element2.Y == Y ) )
+      && ( Element2.Y == Y ) )
       {
         if ( ( Element1.X == 34 )
         && ( Element1.Y == 16 ) )
@@ -4861,8 +4879,8 @@ namespace ElementEditor
         }
 
         if ( ( Element1.Type == Element2.Type )
-        ||   ( Element1.Type == Project.ScreenElementType.LD_ELEMENT )
-        ||   ( Element2.Type == Project.ScreenElementType.LD_ELEMENT ) )
+        || ( Element1.Type == Project.ScreenElementType.LD_ELEMENT )
+        || ( Element2.Type == Project.ScreenElementType.LD_ELEMENT ) )
         {
           // attach to each other
           if ( Element1.Type == Project.ScreenElementType.LD_ELEMENT )
@@ -4870,7 +4888,7 @@ namespace ElementEditor
             if ( X == Element1.X )
             {
               if ( ( Element2.Type != Project.ScreenElementType.LD_ELEMENT )
-              &&   ( Element2.Type != Project.ScreenElementType.LD_ELEMENT_LINE_V ) )
+              && ( Element2.Type != Project.ScreenElementType.LD_ELEMENT_LINE_V ) )
               {
                 return false;
               }
@@ -4879,7 +4897,7 @@ namespace ElementEditor
             else
             {
               if ( ( Element2.Type != Project.ScreenElementType.LD_ELEMENT )
-              &&   ( Element2.Type != Project.ScreenElementType.LD_ELEMENT_LINE_H ) )
+              && ( Element2.Type != Project.ScreenElementType.LD_ELEMENT_LINE_H ) )
               {
                 return false;
               }
@@ -4887,7 +4905,7 @@ namespace ElementEditor
             }
             Element1.Repeats = 2;
             if ( ( Element2.Type == Project.ScreenElementType.LD_ELEMENT_LINE_H )
-            ||   ( Element2.Type == Project.ScreenElementType.LD_ELEMENT_LINE_V ) )
+            || ( Element2.Type == Project.ScreenElementType.LD_ELEMENT_LINE_V ) )
             {
               Element1.Repeats = 1 + Element2.Repeats;
             }
@@ -4931,7 +4949,7 @@ namespace ElementEditor
     {
       int     wrapX = 40;
       if ( ( m_CurrentScreen != null )
-      &&   ( m_CurrentScreen.Width != 40 ) )
+      && ( m_CurrentScreen.Width != 40 ) )
       {
         wrapX = m_CurrentScreen.Width;
       }
@@ -5084,14 +5102,14 @@ namespace ElementEditor
           if ( element != otherElement )
           {
             if ( ( element.Characters.Width == otherElement.Characters.Width )
-            &&   ( element.Characters.Height == otherElement.Characters.Height ) )
+            && ( element.Characters.Height == otherElement.Characters.Height ) )
             {
               for ( int i = 0; i < element.Characters.Width; ++i )
               {
                 for ( int j = 0; j < element.Characters.Height; ++j )
                 {
                   if ( ( element.Characters[i, j].Char != otherElement.Characters[i, j].Char )
-                  ||   ( element.Characters[i, j].Color != otherElement.Characters[i, j].Color ) )
+                  || ( element.Characters[i, j].Color != otherElement.Characters[i, j].Color ) )
                   {
                     goto checkfailed;
                   }
@@ -5099,7 +5117,7 @@ namespace ElementEditor
               }
               // elements are the same!!
               Debug.Log( "Element " + element.Name + " = " + otherElement.Name );
-              checkfailed:;
+checkfailed:;
             }
           }
         }
@@ -5108,26 +5126,26 @@ namespace ElementEditor
 
       foreach ( Project.Screen screen in m_Project.Screens )
       {
-        redo_screen:;
+redo_screen:;
         foreach ( Project.ScreenElement element in screen.DisplayedElements )
         {
           foreach ( Project.ScreenElement otherElement in screen.DisplayedElements )
           {
             if ( ( element != otherElement )
-            &&   ( element.Index == otherElement.Index ) )
+            && ( element.Index == otherElement.Index ) )
             {
               if ( ( element.Type == Project.ScreenElementType.LD_ELEMENT )
-              ||   ( element.Type == Project.ScreenElementType.LD_ELEMENT_LINE_H )
-              ||   ( element.Type == Project.ScreenElementType.LD_ELEMENT_LINE_V ) )
+              || ( element.Type == Project.ScreenElementType.LD_ELEMENT_LINE_H )
+              || ( element.Type == Project.ScreenElementType.LD_ELEMENT_LINE_V ) )
               {
                 if ( ( ( element.Type == Project.ScreenElementType.LD_ELEMENT_LINE_H )
-                &&     ( CombineElements( screen, element, otherElement, element.X + m_Project.Elements[element.Index].Characters.Width * element.Repeats, element.Y ) ) )
-                ||   ( ( element.Type == Project.ScreenElementType.LD_ELEMENT_LINE_V )
-                &&     ( CombineElements( screen, element, otherElement, element.X, element.Y + m_Project.Elements[element.Index].Characters.Height * element.Repeats ) ) )
-                ||   ( ( element.Type == Project.ScreenElementType.LD_ELEMENT )
-                &&     ( CombineElements( screen, element, otherElement, element.X + m_Project.Elements[element.Index].Characters.Width, element.Y ) ) )
-                ||   ( ( element.Type == Project.ScreenElementType.LD_ELEMENT )
-                &&     ( CombineElements( screen, element, otherElement, element.X, element.Y + m_Project.Elements[element.Index].Characters.Height ) ) ) )
+                && ( CombineElements( screen, element, otherElement, element.X + m_Project.Elements[element.Index].Characters.Width * element.Repeats, element.Y ) ) )
+                || ( ( element.Type == Project.ScreenElementType.LD_ELEMENT_LINE_V )
+                && ( CombineElements( screen, element, otherElement, element.X, element.Y + m_Project.Elements[element.Index].Characters.Height * element.Repeats ) ) )
+                || ( ( element.Type == Project.ScreenElementType.LD_ELEMENT )
+                && ( CombineElements( screen, element, otherElement, element.X + m_Project.Elements[element.Index].Characters.Width, element.Y ) ) )
+                || ( ( element.Type == Project.ScreenElementType.LD_ELEMENT )
+                && ( CombineElements( screen, element, otherElement, element.X, element.Y + m_Project.Elements[element.Index].Characters.Height ) ) ) )
                 {
                   ++reducedElements;
                   Modified = true;
@@ -5159,7 +5177,7 @@ namespace ElementEditor
             for ( prevIndex = i - 1; prevIndex >= 0; --prevIndex )
             {
               if ( ( ScreenElementUsesElement( screen.DisplayedElements[prevIndex] ) )
-              &&   ( screen.DisplayedElements[prevIndex].Index == screenElement.Index ) )
+              && ( screen.DisplayedElements[prevIndex].Index == screenElement.Index ) )
               {
                 prevScreenElement = screen.DisplayedElements[prevIndex];
                 break;
@@ -5179,7 +5197,7 @@ namespace ElementEditor
             for ( int intermediateElementIndex = i - 1; intermediateElementIndex > prevIndex; --intermediateElementIndex )
             {
               if ( ( ScreenElementsOverlap( screen.DisplayedElements[intermediateElementIndex], screen.DisplayedElements[prevIndex] ) )
-              ||   ( ScreenElementsOverlap( screen.DisplayedElements[intermediateElementIndex], screen.DisplayedElements[i] ) ) )
+              || ( ScreenElementsOverlap( screen.DisplayedElements[intermediateElementIndex], screen.DisplayedElements[i] ) ) )
               {
                 overlapExists = true;
                 break;
@@ -5202,7 +5220,7 @@ namespace ElementEditor
             for ( prevIndex = i - 1; prevIndex >= 0; --prevIndex )
             {
               if ( ( ScreenElementHasNoChars( screen.DisplayedElements[prevIndex] ) )
-              &&   ( screen.DisplayedElements[prevIndex].Type == screenElement.Type ) )
+              && ( screen.DisplayedElements[prevIndex].Type == screenElement.Type ) )
               {
                 prevScreenElement = screen.DisplayedElements[prevIndex];
                 break;
@@ -5245,7 +5263,7 @@ namespace ElementEditor
               otherElement = screen.DisplayedElements[nextIndex];
 
               if ( ( !ScreenElementUsesElement( otherElement ) )
-              ||   ( otherElement.Index != screenElement.Index ) )
+              || ( otherElement.Index != screenElement.Index ) )
               {
                 otherElement = null;
                 break;
@@ -5259,7 +5277,7 @@ namespace ElementEditor
             }
             // found nothing
             if ( ( nextIndex == screen.DisplayedElements.Count )
-            ||   ( otherElement == null ) )
+            || ( otherElement == null ) )
             {
               continue;
             }
@@ -5273,7 +5291,7 @@ namespace ElementEditor
             for ( int intermediateElementIndex = i; intermediateElementIndex < nextIndex; ++intermediateElementIndex )
             {
               if ( ( ScreenElementsOverlap( screen.DisplayedElements[intermediateElementIndex], screen.DisplayedElements[nextIndex] ) )
-              ||   ( ScreenElementsOverlap( screen.DisplayedElements[intermediateElementIndex], screen.DisplayedElements[i] ) ) )
+              || ( ScreenElementsOverlap( screen.DisplayedElements[intermediateElementIndex], screen.DisplayedElements[i] ) ) )
               {
                 overlapExists = true;
                 break;
@@ -5334,7 +5352,7 @@ namespace ElementEditor
           }
 
           if ( ( element.Type == Project.ScreenElementType.LD_ELEMENT_LINE_H )
-          ||   ( element.Type == Project.ScreenElementType.LD_ELEMENT_LINE_V ) )
+          || ( element.Type == Project.ScreenElementType.LD_ELEMENT_LINE_V ) )
           {
             if ( element.Repeats == 1 )
             {
@@ -5344,7 +5362,7 @@ namespace ElementEditor
           if ( element.Type == Project.ScreenElementType.LD_ELEMENT_AREA )
           {
             if ( ( element.Repeats == 1 )
-            &&   ( element.Repeats2 == 1 ) )
+            && ( element.Repeats2 == 1 ) )
             {
               element.Type = Project.ScreenElementType.LD_ELEMENT;
             }
@@ -5364,9 +5382,9 @@ namespace ElementEditor
             element.Y++;
           }
           if ( ( element.X < 0 )
-          ||   ( element.Y < 0 )
-          ||   ( element.Y >= 25 )
-          ||   ( element.X >= 40 ) )
+          || ( element.Y < 0 )
+          || ( element.Y >= 25 )
+          || ( element.X >= 40 ) )
           {
             Debug.Log( "Screen " + screen.Name + ", Element outside" );
           }
@@ -5391,7 +5409,7 @@ namespace ElementEditor
     private bool ScreenElementHasNoChars( Project.ScreenElement Element )
     {
       if ( ( Element.Type == Project.ScreenElementType.LD_OBJECT )
-      ||   ( Element.Type == Project.ScreenElementType.LD_SPAWN_SPOT ) )
+      || ( Element.Type == Project.ScreenElementType.LD_SPAWN_SPOT ) )
       {
         return true;
       }
@@ -5403,13 +5421,13 @@ namespace ElementEditor
     private bool ScreenElementUsesElement( Project.ScreenElement Element )
     {
       if ( ( Element.Type == Project.ScreenElementType.LD_DOOR )
-      ||   ( Element.Type == Project.ScreenElementType.LD_ELEMENT )
-      ||   ( Element.Type == Project.ScreenElementType.LD_SEARCH_OBJECT )
-      ||   ( Element.Type == Project.ScreenElementType.LD_SPECIAL )
-      ||   ( Element.Type == Project.ScreenElementType.LD_CLUE )
-      ||   ( Element.Type == Project.ScreenElementType.LD_ELEMENT_AREA )
-      ||   ( Element.Type == Project.ScreenElementType.LD_ELEMENT_LINE_H )
-      ||   ( Element.Type == Project.ScreenElementType.LD_ELEMENT_LINE_V ) )
+      || ( Element.Type == Project.ScreenElementType.LD_ELEMENT )
+      || ( Element.Type == Project.ScreenElementType.LD_SEARCH_OBJECT )
+      || ( Element.Type == Project.ScreenElementType.LD_SPECIAL )
+      || ( Element.Type == Project.ScreenElementType.LD_CLUE )
+      || ( Element.Type == Project.ScreenElementType.LD_ELEMENT_AREA )
+      || ( Element.Type == Project.ScreenElementType.LD_ELEMENT_LINE_H )
+      || ( Element.Type == Project.ScreenElementType.LD_ELEMENT_LINE_V ) )
       {
         return true;
       }
@@ -5460,7 +5478,7 @@ namespace ElementEditor
 
       foreach ( Project.Screen screen in m_Project.Screens )
       {
-        redo_screen:;
+redo_screen:;
         foreach ( Project.ScreenElement element in screen.DisplayedElements )
         {
           if ( ScreenElementUsesElement( element ) )
@@ -5600,10 +5618,10 @@ namespace ElementEditor
         foreach ( var element in screen.DisplayedElements )
         {
           if ( ( element.Type == Project.ScreenElementType.LD_OBJECT )
-          ||   ( element.Type == Project.ScreenElementType.LD_SPAWN_SPOT ) )
+          || ( element.Type == Project.ScreenElementType.LD_SPAWN_SPOT ) )
           {
             if ( ( element.Object != null )
-            &&   ( element.Object.TemplateIndex == selectedIndex ) )
+            && ( element.Object.TemplateIndex == selectedIndex ) )
             {
               stillUsed = true;
               break;
@@ -5629,7 +5647,7 @@ namespace ElementEditor
         foreach ( var element in screen.DisplayedElements )
         {
           if ( ( element.Type == Project.ScreenElementType.LD_OBJECT )
-          ||   ( element.Type == Project.ScreenElementType.LD_SPAWN_SPOT ) )
+          || ( element.Type == Project.ScreenElementType.LD_SPAWN_SPOT ) )
           {
             if ( element.Object.TemplateIndex >= selectedIndex )
             {
@@ -5637,7 +5655,7 @@ namespace ElementEditor
               element.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile.Image );
 
               RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile,
-                                  m_SpriteProject.Colors.Palette, 
+                                  m_SpriteProject.Colors.Palette,
                                   element.Object.SpriteImage,
                                   m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Mode,
                                   element.Object.Color );
@@ -5731,7 +5749,7 @@ namespace ElementEditor
           screenElement.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Tile.Image );
         }
         RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Tile,
-                            m_SpriteProject.Colors.Palette, 
+                            m_SpriteProject.Colors.Palette,
                             screenElement.Object.SpriteImage,
                             m_SpriteProject.Sprites[m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].StartSprite].Mode,
                             screenElement.Object.Color );
@@ -5773,7 +5791,7 @@ namespace ElementEditor
       if ( screenElement.Type == Project.ScreenElementType.LD_OBJECT )
       {
         if ( ( screenElement.Object != null )
-        &&   ( GR.Convert.ToI32( editObjectBorderLeft.Text ) != screenElement.Object.MoveBorderLeft ) )
+        && ( GR.Convert.ToI32( editObjectBorderLeft.Text ) != screenElement.Object.MoveBorderLeft ) )
         {
           screenElement.Object.MoveBorderLeft = GR.Convert.ToI32( editObjectBorderLeft.Text );
           Modified = true;
@@ -5802,7 +5820,7 @@ namespace ElementEditor
       if ( screenElement.Type == Project.ScreenElementType.LD_OBJECT )
       {
         if ( ( screenElement.Object != null )
-        &&   ( GR.Convert.ToI32( editObjectBorderTop.Text ) != screenElement.Object.MoveBorderTop ) )
+        && ( GR.Convert.ToI32( editObjectBorderTop.Text ) != screenElement.Object.MoveBorderTop ) )
         {
           screenElement.Object.MoveBorderTop = GR.Convert.ToI32( editObjectBorderTop.Text );
           Modified = true;
@@ -5831,7 +5849,7 @@ namespace ElementEditor
       if ( screenElement.Type == Project.ScreenElementType.LD_OBJECT )
       {
         if ( ( screenElement.Object != null )
-        &&   ( GR.Convert.ToI32( editObjectBorderRight.Text ) != screenElement.Object.MoveBorderRight ) )
+        && ( GR.Convert.ToI32( editObjectBorderRight.Text ) != screenElement.Object.MoveBorderRight ) )
         {
           screenElement.Object.MoveBorderRight = GR.Convert.ToI32( editObjectBorderRight.Text );
           Modified = true;
@@ -5858,7 +5876,7 @@ namespace ElementEditor
       Project.ScreenElement screenElement = m_CurrentScreen.DisplayedElements[elementIndex];
 
       if ( ( screenElement.Object != null )
-      &&    ( GR.Convert.ToI32( editObjectBorderBottom.Text ) != screenElement.Object.MoveBorderBottom ) )
+      && ( GR.Convert.ToI32( editObjectBorderBottom.Text ) != screenElement.Object.MoveBorderBottom ) )
       {
         screenElement.Object.MoveBorderBottom = GR.Convert.ToI32( editObjectBorderBottom.Text );
         Modified = true;
@@ -5879,7 +5897,7 @@ namespace ElementEditor
       Project.ScreenElement screenElement = m_CurrentScreen.DisplayedElements[elementIndex];
 
       if ( ( screenElement.Object != null )
-      &&   ( GR.Convert.ToI32( editObjectSpeed.Text ) != screenElement.Object.Speed ) )
+      && ( GR.Convert.ToI32( editObjectSpeed.Text ) != screenElement.Object.Speed ) )
       {
         screenElement.Object.Speed = GR.Convert.ToI32( editObjectSpeed.Text );
         Modified = true;
@@ -5959,7 +5977,7 @@ namespace ElementEditor
       Project.ScreenElement screenElement = m_CurrentScreen.DisplayedElements[elementIndex];
 
       if ( ( screenElement.Object != null )
-      &&   ( comboObjectBehaviour.SelectedIndex != screenElement.Object.Behaviour ) )
+      && ( comboObjectBehaviour.SelectedIndex != screenElement.Object.Behaviour ) )
       {
         screenElement.Object.Behaviour = comboObjectBehaviour.SelectedIndex;
         Modified = true;
@@ -5979,7 +5997,7 @@ namespace ElementEditor
       Project.ScreenElement screenElement = m_CurrentScreen.DisplayedElements[elementIndex];
 
       if ( ( screenElement.Object != null )
-      &&   ( comboObjectOptional.SelectedIndex != (int)screenElement.Object.Optional ) )
+      && ( comboObjectOptional.SelectedIndex != (int)screenElement.Object.Optional ) )
       {
         screenElement.Object.Optional = (Project.GameObject.OptionalType)comboObjectOptional.SelectedIndex;
         Modified = true;
@@ -6016,11 +6034,11 @@ namespace ElementEditor
       {
         return;
       }
-      m_CurrentScreen.Width   = GR.Convert.ToI32( editScreenWidth.Text );
-      m_CurrentScreen.Height  = GR.Convert.ToI32( editScreenHeight.Text );
+      m_CurrentScreen.Width = GR.Convert.ToI32( editScreenWidth.Text );
+      m_CurrentScreen.Height = GR.Convert.ToI32( editScreenHeight.Text );
       m_ScreenContent.Resize( m_CurrentScreen.Width, m_CurrentScreen.Height );
-      scrollScreen.Maximum    = m_CurrentScreen.Width - 40;
-      scrollScreenV.Maximum   = m_CurrentScreen.Height - 25;
+      scrollScreen.Maximum = m_CurrentScreen.Width - 40;
+      scrollScreenV.Maximum = m_CurrentScreen.Height - 25;
       Modified = true;
     }
 
@@ -6031,9 +6049,9 @@ namespace ElementEditor
       int width = GR.Convert.ToI32( editScreenWidth.Text );
       int height = GR.Convert.ToI32( editScreenHeight.Text );
       if ( ( width < 40 )
-      ||   ( width > 320 )
-      ||   ( height < 25 )
-      ||   ( height >= 40 * 25 ) )
+      || ( width > 320 )
+      || ( height < 25 )
+      || ( height >= 40 * 25 ) )
       {
         btnApplyScreenSize.Enabled = false;
       }
@@ -6196,7 +6214,7 @@ namespace ElementEditor
     private void comboScreenCharset_SelectedIndexChanged( object sender, EventArgs e )
     {
       if ( ( m_CurrentScreen != null )
-      &&   ( m_CurrentScreen.CharsetIndex != comboScreenCharset.SelectedIndex ) )
+      && ( m_CurrentScreen.CharsetIndex != comboScreenCharset.SelectedIndex ) )
       {
         m_CurrentScreen.CharsetIndex = comboScreenCharset.SelectedIndex;
         Modified = true;
@@ -6213,7 +6231,7 @@ namespace ElementEditor
     private void comboElementCharset_SelectedIndexChanged( object sender, EventArgs e )
     {
       if ( ( m_CurrentEditedElement != null )
-      &&   ( m_CurrentEditedElement.CharsetIndex != comboElementCharset.SelectedIndex ) )
+      && ( m_CurrentEditedElement.CharsetIndex != comboElementCharset.SelectedIndex ) )
       {
         m_CurrentEditedElement.CharsetIndex = comboElementCharset.SelectedIndex;
 
@@ -6261,9 +6279,9 @@ namespace ElementEditor
         listAvailableObjects.Items.Add( obj );
       }*/
 
-      editExportFile.Text           = otherProject.ExportFilename;
-      editExportPrefix.Text         = otherProject.ExportPrefix;
-      editConstantOffset.Text       = otherProject.ExportConstantOffset.ToString();
+      editExportFile.Text = otherProject.ExportFilename;
+      editExportPrefix.Text = otherProject.ExportPrefix;
+      editConstantOffset.Text = otherProject.ExportConstantOffset.ToString();
       comboProjectType.SelectedItem = otherProject.ProjectType;
 
       /*
@@ -6272,7 +6290,7 @@ namespace ElementEditor
        */
 
       if ( ( otherProject.CharsetProjects.Count == 0 )
-      &&   ( !string.IsNullOrEmpty( otherProject.OldCharsetProjectFilename ) ) )
+      && ( !string.IsNullOrEmpty( otherProject.OldCharsetProjectFilename ) ) )
       {
         string fullPath = GR.Path.Append( GR.Path.RemoveFileSpec( openFile.FileName ), otherProject.OldCharsetProjectFilename );
         CharsetProject charSet = OpenCharsetProject( fullPath );
@@ -6291,7 +6309,7 @@ namespace ElementEditor
           otherProject.Charsets.Add( charSet );
         }
       }
-      else 
+      else
       {
         for ( int i = 0; i < otherProject.CharsetProjects.Count; ++i )
         {
@@ -6359,7 +6377,7 @@ namespace ElementEditor
       }*/
       if ( m_Project.Charsets.Count > 0 )
       {
-        SetActiveElementCharset( m_Project.Charsets[0], 
+        SetActiveElementCharset( m_Project.Charsets[0],
                                  m_Project.Charsets[comboElementCharset.SelectedIndex].Colors.MultiColor1,
                                  m_Project.Charsets[comboElementCharset.SelectedIndex].Colors.MultiColor2,
                                  m_Project.CharsetProjects[0].Multicolor );
@@ -6373,7 +6391,7 @@ namespace ElementEditor
         foreach ( Project.ScreenElement element in screen.DisplayedElements )
         {
           if ( ( element.Type != Project.ScreenElementType.LD_OBJECT )
-          &&   ( element.Type != Project.ScreenElementType.LD_SPECIAL ) )
+          && ( element.Type != Project.ScreenElementType.LD_SPECIAL ) )
           {
             element.Index += elementOffset;
           }
@@ -6403,7 +6421,7 @@ namespace ElementEditor
       }
       foreach ( Project.Screen screen in otherProject.Screens )
       {
-        comboScreens.Items.Add( new GR.Generic.Tupel<string,Project.Screen>( comboScreens.Items.Count.ToString() + ":" + screen.Name, screen ) );
+        comboScreens.Items.Add( new GR.Generic.Tupel<string, Project.Screen>( comboScreens.Items.Count.ToString() + ":" + screen.Name, screen ) );
       }
       foreach ( Project.Element element in otherProject.Elements )
       {
@@ -6509,7 +6527,7 @@ namespace ElementEditor
 
       int     index = e.Index;
       if ( ( index >= 0 )
-      &&   ( index < 256 ) )
+      && ( index < 256 ) )
       {
         System.Drawing.RectangleF textRect = new RectangleF( e.Bounds.Left, e.Bounds.Top, e.Bounds.Width, e.Bounds.Height );
         System.Drawing.Brush textBrush = new SolidBrush( e.ForeColor );
@@ -6538,13 +6556,13 @@ namespace ElementEditor
       e.DrawBackground();
 
       if ( ( listElementChars.SelectedIndices.Count == 0 )
-      ||   ( m_CurrentEditedElement == null ) )
+      || ( m_CurrentEditedElement == null ) )
       {
         return;
       }
       int index = e.Index;
       if ( ( index >= 0 )
-      &&   ( index < 256 ) )
+      && ( index < 256 ) )
       {
         System.Drawing.RectangleF textRect = new RectangleF( e.Bounds.Left, e.Bounds.Top, e.Bounds.Width, e.Bounds.Height );
         System.Drawing.Brush textBrush = new SolidBrush( e.ForeColor );
@@ -6574,7 +6592,7 @@ namespace ElementEditor
 
       int index = e.Index;
       if ( ( index >= 0 )
-      &&   ( index < 16 ) )
+      && ( index < 16 ) )
       {
         System.Drawing.RectangleF textRect = new RectangleF( e.Bounds.Left, e.Bounds.Top, e.Bounds.Width, e.Bounds.Height );
         System.Drawing.Brush textBrush = new SolidBrush( e.ForeColor );
@@ -6602,7 +6620,7 @@ namespace ElementEditor
 
       int index = e.Index;
       if ( ( index >= 0 )
-      &&   ( index < 16 ) )
+      && ( index < 16 ) )
       {
         System.Drawing.RectangleF textRect = new RectangleF( e.Bounds.Left, e.Bounds.Top, e.Bounds.Width, e.Bounds.Height );
         System.Drawing.Brush textBrush = new SolidBrush( e.ForeColor );
@@ -6677,7 +6695,7 @@ namespace ElementEditor
         ++index;
       }
       if ( ( comboElementCharset.SelectedIndex >= 0 )
-      &&   ( comboElementCharset.SelectedIndex < m_Project.Charsets.Count ) )
+      && ( comboElementCharset.SelectedIndex < m_Project.Charsets.Count ) )
       {
         SetActiveElementCharset( m_Project.Charsets[comboElementCharset.SelectedIndex],
                                  m_Project.Charsets[comboElementCharset.SelectedIndex].Colors.MultiColor1,
@@ -6700,14 +6718,14 @@ namespace ElementEditor
           foreach ( Project.ScreenElement element in screen.DisplayedElements )
           {
             if ( ( element.Type == Project.ScreenElementType.LD_OBJECT )
-            ||   ( element.Type == Project.ScreenElementType.LD_SPAWN_SPOT ) )
+            || ( element.Type == Project.ScreenElementType.LD_SPAWN_SPOT ) )
             {
               if ( ( element.Object != null )
-              &&   ( element.Object.TemplateIndex != -1 ) )
+              && ( element.Object.TemplateIndex != -1 ) )
               {
                 element.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile.Image );
                 RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile,
-                                    m_SpriteProject.Colors.Palette, 
+                                    m_SpriteProject.Colors.Palette,
                                     element.Object.SpriteImage,
                                     m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Mode,
                                     element.Object.Color );
@@ -6753,7 +6771,7 @@ namespace ElementEditor
               }
               // elements are the same!!
               resultText += "Element " + element.Name + " = " + otherElement.Name + System.Environment.NewLine;
-              checkfailed:;
+checkfailed:;
             }
           }
         }
@@ -6834,23 +6852,23 @@ namespace ElementEditor
           }
 
           if ( ( element.Type == Project.ScreenElementType.LD_LINE_H )
-          ||   ( element.Type == Project.ScreenElementType.LD_LINE_V )
-          ||   ( element.Type == Project.ScreenElementType.LD_AREA )
-          ||   ( element.Type == Project.ScreenElementType.LD_ELEMENT_LINE_H )
-          ||   ( element.Type == Project.ScreenElementType.LD_ELEMENT_LINE_V )
-          ||   ( element.Type == Project.ScreenElementType.LD_ELEMENT_AREA ) )
+          || ( element.Type == Project.ScreenElementType.LD_LINE_V )
+          || ( element.Type == Project.ScreenElementType.LD_AREA )
+          || ( element.Type == Project.ScreenElementType.LD_ELEMENT_LINE_H )
+          || ( element.Type == Project.ScreenElementType.LD_ELEMENT_LINE_V )
+          || ( element.Type == Project.ScreenElementType.LD_ELEMENT_AREA ) )
           {
             if ( ( element.Repeats == 0 )
-            ||   ( element.Repeats >= 128 ) )
+            || ( element.Repeats >= 128 ) )
             {
               resultText += "Screen " + screen.Name + " (" + screenIndex.ToString() + "), Element " + screenElementIndex + " has invalid repeat count" + System.Environment.NewLine;
             }
           }
           if ( ( element.Type == Project.ScreenElementType.LD_AREA )
-          ||   ( element.Type == Project.ScreenElementType.LD_ELEMENT_AREA ) )
+          || ( element.Type == Project.ScreenElementType.LD_ELEMENT_AREA ) )
           {
             if ( ( element.Repeats2 == 0 )
-            ||   ( element.Repeats2 >= 128 ) )
+            || ( element.Repeats2 >= 128 ) )
             {
               resultText += "Screen " + screen.Name + " (" + screenIndex.ToString() + "), Element " + screenElementIndex + " has invalid secondary repeat count" + System.Environment.NewLine;
             }
@@ -6867,9 +6885,9 @@ namespace ElementEditor
             element.Y++;
           }
           if ( ( element.X < 0 )
-          ||   ( element.Y < 0 )
-          ||   ( element.Y >= screen.Height )
-          ||   ( element.X >= screen.Width ) )
+          || ( element.Y < 0 )
+          || ( element.Y >= screen.Height )
+          || ( element.X >= screen.Width ) )
           {
             resultText += "Screen " + screen.Name + " (" + screenIndex.ToString() + "), Element " + screenElementIndex + " outside" + System.Environment.NewLine;
           }
@@ -6907,7 +6925,7 @@ namespace ElementEditor
         {
           for ( int j = 0; j < template.Characters.Height; ++j )
           {
-            usedChars.Add( template.Characters[i,j].Char + template.CharsetIndex * 256 );
+            usedChars.Add( template.Characters[i, j].Char + template.CharsetIndex * 256 );
           }
         }
       }
@@ -7033,7 +7051,7 @@ namespace ElementEditor
 
       int index = e.Index;
       if ( ( index >= 0 )
-      &&   ( index < 256 ) )
+      && ( index < 256 ) )
       {
         System.Drawing.RectangleF textRect = new RectangleF( e.Bounds.Left, e.Bounds.Top, e.Bounds.Width, e.Bounds.Height );
         System.Drawing.Brush textBrush = new SolidBrush( e.ForeColor );
@@ -7250,7 +7268,7 @@ namespace ElementEditor
     private void btnAddRegionScreen_Click( object sender, EventArgs e )
     {
       if ( ( comboRegionScreens.SelectedIndex == -1 )
-      ||   ( listRegions.SelectedItems.Count == 0 ) )
+      || ( listRegions.SelectedItems.Count == 0 ) )
       {
         return;
       }
@@ -7630,7 +7648,7 @@ namespace ElementEditor
           m_Project.CharsetProjects[comboElementCharset.SelectedIndex].Multicolor = checkMCMode.Checked;
 
           if ( ( comboElementCharset.SelectedIndex >= 0 )
-          &&   ( comboElementCharset.SelectedIndex < m_Project.Charsets.Count ) )
+          && ( comboElementCharset.SelectedIndex < m_Project.Charsets.Count ) )
           {
             SetActiveElementCharset( m_Project.Charsets[comboElementCharset.SelectedIndex],
                                      m_Project.Charsets[comboElementCharset.SelectedIndex].Colors.MultiColor1,
@@ -7638,6 +7656,26 @@ namespace ElementEditor
                                      m_Project.CharsetProjects[comboElementCharset.SelectedIndex].Multicolor );
           }
           Modified = true;
+        }
+      }
+      else
+      {
+        if ( comboElementCharset.SelectedIndex != -1 )
+        {
+          if ( m_Project.CharsetProjects[comboElementCharset.SelectedIndex].Multicolor != checkMCMode.Checked )
+          {
+            m_Project.CharsetProjects[comboElementCharset.SelectedIndex].Multicolor = checkMCMode.Checked;
+
+            if ( ( comboElementCharset.SelectedIndex >= 0 )
+            && ( comboElementCharset.SelectedIndex < m_Project.Charsets.Count ) )
+            {
+              SetActiveElementCharset( m_Project.Charsets[comboElementCharset.SelectedIndex],
+                                       m_Project.Charsets[comboElementCharset.SelectedIndex].Colors.MultiColor1,
+                                       m_Project.Charsets[comboElementCharset.SelectedIndex].Colors.MultiColor2,
+                                       m_Project.CharsetProjects[comboElementCharset.SelectedIndex].Multicolor );
+            }
+            Modified = true;
+          }
         }
       }
     }
@@ -7656,8 +7694,8 @@ namespace ElementEditor
         GR.Image.FastImage imgClip = GR.Image.FastImage.FromImage( bmpImage );
         bmpImage.Dispose();
         if ( ( imgClip.Width != 320 )
-        ||   ( imgClip.Height != 200 )
-        ||   ( imgClip.PixelFormat != System.Drawing.Imaging.PixelFormat.Format32bppRgb ) )
+        || ( imgClip.Height != 200 )
+        || ( imgClip.PixelFormat != System.Drawing.Imaging.PixelFormat.Format32bppRgb ) )
         {
           imgClip.Dispose();
           System.Windows.Forms.MessageBox.Show( "Image format invalid!\nNeeds to be 32bit and have width/height of 320x200" );
@@ -7691,7 +7729,7 @@ namespace ElementEditor
       Project.ScreenElement screenElement = m_CurrentScreen.DisplayedElements[elementIndex];
 
       if ( ( screenElement.Object != null )
-      &&   ( GR.Convert.ToI32( editObjectData.Text ) != screenElement.Object.Data ) )
+      && ( GR.Convert.ToI32( editObjectData.Text ) != screenElement.Object.Data ) )
       {
         screenElement.Object.Data = GR.Convert.ToI32( editObjectData.Text );
         Modified = true;
@@ -7767,7 +7805,7 @@ namespace ElementEditor
         {
           m_CurrentScreen.OverrideMC2 = screenMCColor2.SelectedIndex - 1;
           if ( ( comboElementCharset.SelectedIndex >= 0 )
-          &&   ( comboElementCharset.SelectedIndex < m_Project.Charsets.Count ) )
+          && ( comboElementCharset.SelectedIndex < m_Project.Charsets.Count ) )
           {
             SetActiveElementCharset( m_Project.Charsets[comboElementCharset.SelectedIndex],
                                    m_CurrentScreen.OverrideMC1 != -1 ? m_CurrentScreen.OverrideMC1 : m_Project.Charsets[comboElementCharset.SelectedIndex].Colors.MultiColor1,
@@ -7780,8 +7818,8 @@ namespace ElementEditor
       }
     }
 
-    
-    
+
+
     private void screenMCColor1_SelectedIndexChanged( object sender, EventArgs e )
     {
       if ( m_CurrentScreen != null )
@@ -7791,9 +7829,9 @@ namespace ElementEditor
           m_CurrentScreen.OverrideMC1 = screenMCColor1.SelectedIndex - 1;
 
           if ( ( comboElementCharset.SelectedIndex >= 0 )
-          &&   ( comboElementCharset.SelectedIndex < m_Project.Charsets.Count ) )
+          && ( comboElementCharset.SelectedIndex < m_Project.Charsets.Count ) )
           {
-            SetActiveElementCharset( m_Project.Charsets[comboElementCharset.SelectedIndex], 
+            SetActiveElementCharset( m_Project.Charsets[comboElementCharset.SelectedIndex],
                                    m_CurrentScreen.OverrideMC1 != -1 ? m_CurrentScreen.OverrideMC1 : m_Project.Charsets[comboElementCharset.SelectedIndex].Colors.MultiColor1,
                                    m_CurrentScreen.OverrideMC2 != -1 ? m_CurrentScreen.OverrideMC2 : m_Project.Charsets[comboElementCharset.SelectedIndex].Colors.MultiColor2,
                                    m_Project.CharsetProjects[comboElementCharset.SelectedIndex].Multicolor );
@@ -7817,14 +7855,14 @@ namespace ElementEditor
         if ( m_CurrentScreen != null )
         {
           if ( ( m_CurrentScreen.CharsetIndex >= 0 )
-          &&   ( m_CurrentScreen.CharsetIndex < m_Project.Charsets.Count ) )
+          && ( m_CurrentScreen.CharsetIndex < m_Project.Charsets.Count ) )
           {
             drawIndex = m_Project.Charsets[m_CurrentScreen.CharsetIndex].Colors.MultiColor1;
           }
         }
       }
       if ( ( drawIndex >= 0 )
-      &&   ( drawIndex < 16 ) )
+      && ( drawIndex < 16 ) )
       {
         if ( index != -1 )
         {
@@ -7873,7 +7911,7 @@ namespace ElementEditor
         }
       }
       if ( ( drawIndex >= 0 )
-      &&   ( drawIndex < 16 ) )
+      && ( drawIndex < 16 ) )
       {
         if ( index != -1 )
         {
@@ -7919,7 +7957,7 @@ namespace ElementEditor
       Project.ScreenElement screenElement = m_CurrentScreen.DisplayedElements[elementIndex];
 
       if ( ( screenElement.Object != null )
-      &&   ( GR.Convert.ToI32( editObjectOptionalOn.Text ) != screenElement.Object.OptionalValue ) )
+      && ( GR.Convert.ToI32( editObjectOptionalOn.Text ) != screenElement.Object.OptionalValue ) )
       {
         screenElement.Object.OptionalValue = GR.Convert.ToI32( editObjectOptionalOn.Text );
         Modified = true;
@@ -7974,7 +8012,7 @@ namespace ElementEditor
         if ( lines[i].StartsWith( ";" ) )
         {
           if ( ( i == 0 )
-          &&   ( lines[i].StartsWith( ";size" ) ) )
+          && ( lines[i].StartsWith( ";size" ) ) )
           {
             var line = lines[i].Substring( 5 );
 
@@ -8003,7 +8041,7 @@ namespace ElementEditor
       if ( parts.Length != 2 * width * height )
       {
         System.Windows.Forms.MessageBox.Show( "Data not valid, expect w,h,w*h chars,w*h colors\r\n"
-          + width + " * " + height + " = " + ( ( width * height ) * 2 )  + " != " + parts.Length, "Data size does not match" );
+          + width + " * " + height + " = " + ( ( width * height ) * 2 ) + " != " + parts.Length, "Data size does not match" );
         return;
       }
 
@@ -8135,7 +8173,7 @@ namespace ElementEditor
 
       int   trueIndex = tx + ty * m_CurrentEditedElement.Characters.Width;
       if ( ( trueIndex < listElementChars.Items.Count )
-      &&   ( trueIndex >= 0 ) )
+      && ( trueIndex >= 0 ) )
       {
         listElementChars.SelectedIndices.Clear();
         listElementChars.SelectedIndices.Add( trueIndex );
@@ -8168,6 +8206,13 @@ namespace ElementEditor
       {
         Modified = false;
       }
+    }
+
+
+
+    private void importMapProjectToolStripMenuItem_Click( object sender, EventArgs e )
+    {
+
     }
 
 
