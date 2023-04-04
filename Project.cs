@@ -21,6 +21,7 @@ namespace ElementEditor
       SCREEN            = 0x2000,
       SCREEN_INFO       = 0x2001,
       SCREEN_ELEMENT    = 0x2002,
+      SCREEN_TILE_GRID  = 0x2003,
       MAP_REGION        = 0x3000,
       MAP_REGION_INFO   = 0x3001,
       MAP_REGION_SCREEN = 0x3002
@@ -220,6 +221,9 @@ namespace ElementEditor
       public int                CharsetIndex = 0;
       public int                OverrideMC1 = -1;
       public int                OverrideMC2 = -1;
+      public GR.Game.Layer<int> TileGrid = new GR.Game.Layer<int>();
+      public int                TileWidth = 2;
+      public int                TileHeight = 2;
 
 
 
@@ -564,6 +568,23 @@ namespace ElementEditor
                 GR.IO.MemoryReader subReader = subChunk.MemoryReader();
                 switch ( subChunk.Type )
                 {
+                  case (ushort)ChunkType.SCREEN_TILE_GRID:
+                    {
+                      int   w = subReader.ReadInt32();
+                      int   h = subReader.ReadInt32();
+                      screen.TileWidth = subReader.ReadInt32();
+                      screen.TileHeight = subReader.ReadInt32();
+                      screen.TileGrid.Resize( w, h );
+
+                      for ( int j = 0; j < screen.TileGrid.Height; ++j )
+                      {
+                        for ( int i = 0; i < screen.TileGrid.Width; ++i )
+                        {
+                          screen.TileGrid[i, j] = subReader.ReadInt32();
+                        }
+                      }
+                    }
+                    break;
                   case (ushort)ChunkType.SCREEN_INFO:
                     screen.Name = subReader.ReadString();
                     screen.Width = subReader.ReadInt32();
@@ -753,6 +774,25 @@ namespace ElementEditor
         chunkScreenInfo.AppendI32( screen.OverrideMC1 + 1 );
         chunkScreenInfo.AppendI32( screen.OverrideMC2 + 1 );
         chunkScreen.Append( chunkScreenInfo.ToBuffer() );
+
+        if ( ( screen.TileGrid.Width > 0 )
+        &&   ( screen.TileGrid.Height > 0 ) )
+        {
+          GR.IO.FileChunk chunkTileGrid = new GR.IO.FileChunk( (ushort)ChunkType.SCREEN_TILE_GRID );
+          chunkTileGrid.Reserve( screen.TileGrid.Width * screen.TileGrid.Height * 4 + 8 + 8 );
+          chunkTileGrid.AppendI32( screen.TileGrid.Width );
+          chunkTileGrid.AppendI32( screen.TileGrid.Height );
+          chunkTileGrid.AppendI32( screen.TileWidth );
+          chunkTileGrid.AppendI32( screen.TileHeight );
+          for ( int j = 0; j < screen.TileGrid.Height; ++j )
+          {
+            for ( int i = 0; i < screen.TileGrid.Width; ++i )
+            {
+              chunkTileGrid.AppendI32( screen.TileGrid[i, j] );
+            }
+          }
+          chunkScreen.Append( chunkTileGrid.ToBuffer() );
+        }
 
         foreach ( ScreenElement element in screen.DisplayedElements )
         {

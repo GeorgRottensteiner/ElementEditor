@@ -10,6 +10,7 @@ using RetroDevStudio.Formats;
 using RetroDevStudio.Displayer;
 using RetroDevStudio.Types;
 using RetroDevStudio;
+using static ElementEditor.Project;
 
 namespace ElementEditor
 {
@@ -113,6 +114,8 @@ namespace ElementEditor
 
     private FormCheckResult             m_CheckResult = null;
 
+    private int                         m_CurrentTileIndex = 0;
+
 
 
 
@@ -179,6 +182,7 @@ namespace ElementEditor
       comboProjectType.Items.Add( "Downhill Challenge" );
       comboProjectType.Items.Add( "MegaSisters" );
       comboProjectType.Items.Add( "Generic (matches Barnsley Badger)" );
+      comboProjectType.Items.Add( "Sky Hawk" );
       comboProjectType.SelectedIndex = 0;
 
       comboScreenObjectFlags.Items.Add( "None" );
@@ -589,8 +593,8 @@ namespace ElementEditor
       }
 
       if ( ( m_CurrentScreen != null )
-      && ( m_Project.ProjectType == "Wonderland" )
-      && ( comboScreens.SelectedIndex >= 52 ) )
+      &&   ( m_Project.ProjectType == "Wonderland" )
+      &&   ( comboScreens.SelectedIndex >= 52 ) )
       {
         // special case part building
         //      LL        Looks right (0 to 3)
@@ -694,10 +698,29 @@ namespace ElementEditor
     private void DrawScreen( Project.Screen Screen )
     {
       if ( ( Screen != null )
-      && ( Screen.CharsetIndex >= 0 )
-      && ( Screen.CharsetIndex < m_Project.Charsets.Count ) )
+      &&   ( Screen.CharsetIndex >= 0 )
+      &&   ( Screen.CharsetIndex < m_Project.Charsets.Count ) )
       {
         CharsetProject charSet = m_Project.Charsets[Screen.CharsetIndex];
+
+        if ( ProjectTypeHasTileGrid() )
+        {
+          int   sx = -m_ScreenOffsetX % Screen.TileWidth;
+          int   sy = -m_ScreenOffsetY % Screen.TileHeight;
+
+          for ( int y = 0; y <= 25; y += Screen.TileHeight )
+          {
+            for ( int x = 0; x <= 40; x += Screen.TileWidth )
+            {
+              int   tx = ( x + m_ScreenOffsetX ) / Screen.TileWidth;
+              int   ty = ( y + m_ScreenOffsetY ) / Screen.TileHeight;
+              DisplayElement( m_Project.Elements[Screen.TileGrid[tx, ty]], 
+                x + ( m_ScreenOffsetX / Screen.TileWidth ) * Screen.TileWidth,
+                y + ( m_ScreenOffsetY / Screen.TileHeight ) * Screen.TileHeight, 
+                null );
+            }
+          }
+        }
 
         foreach ( Project.ScreenElement element in Screen.DisplayedElements )
         {
@@ -1155,6 +1178,17 @@ namespace ElementEditor
         return null;
       }
 
+      if ( Filename.ToUpper().EndsWith( ".MAPPROJECT" ) )
+      {
+        var mapProject = new MapProject();
+
+        if ( !mapProject.ReadFromBuffer( projectFile ) )
+        {
+          return null;
+        }
+        return mapProject.Charset;
+      }
+
       CharsetProject    charSet = new CharsetProject();
 
       charSet.ReadFromBuffer( projectFile );
@@ -1264,7 +1298,7 @@ namespace ElementEditor
         comboProjectType.SelectedItem = m_Project.ProjectType;
 
         if ( ( m_Project.CharsetProjects.Count == 0 )
-        && ( !string.IsNullOrEmpty( m_Project.OldCharsetProjectFilename ) ) )
+        &&   ( !string.IsNullOrEmpty( m_Project.OldCharsetProjectFilename ) ) )
         {
           string fullPath = GR.Path.Append( GR.Path.RemoveFileSpec( Filename ), m_Project.OldCharsetProjectFilename );
           CharsetProject charSet = OpenCharsetProject( fullPath );
@@ -2993,14 +3027,36 @@ redo_from_start:;
     private bool ProjectTypeAllowsPrimitiveTypeReuse()
     {
       if ( ( m_Project.ProjectType == "Soulless" )
-      || ( m_Project.ProjectType == "Soulless 2" )
-      || ( m_Project.ProjectType == "Rocky" )
-      || ( m_Project.ProjectType == "Supernatural" )
-      || ( m_Project.ProjectType == "Hyperion" )
-      || ( m_Project.ProjectType == "Adventure" )
-      || ( m_Project.ProjectType == "Generic (matches Barnsley Badger)" )
-      || ( m_Project.ProjectType == "Barnsley Badger" )
-      || ( m_Project.ProjectType == "Wonderland" ) )
+      ||   ( m_Project.ProjectType == "Soulless 2" )
+      ||   ( m_Project.ProjectType == "Rocky" )
+      ||   ( m_Project.ProjectType == "Supernatural" )
+      ||   ( m_Project.ProjectType == "Hyperion" )
+      ||   ( m_Project.ProjectType == "Adventure" )
+      ||   ( m_Project.ProjectType == "Generic (matches Barnsley Badger)" )
+      ||   ( m_Project.ProjectType == "Barnsley Badger" )
+      ||   ( m_Project.ProjectType == "Wonderland" ) )
+      {
+        return true;
+      }
+      return false;
+    }
+
+
+
+    private bool ProjectTypeHasTileGrid()
+    { 
+      if ( m_Project.ProjectType == "Sky Hawk" )
+      {
+        return true;
+      }
+      return false;
+    }
+
+
+
+    private bool ProjectTypeOnlyExportsObjectGrid()
+    {
+      if ( m_Project.ProjectType == "Sky Hawk" )
       {
         return true;
       }
@@ -3012,7 +3068,7 @@ redo_from_start:;
     private bool ProjectTypeAllowsMapData()
     {
       if ( ( m_Project.ProjectType == "Hyperion" )
-      || ( m_Project.ProjectType == "Adventure" ) )
+      ||   ( m_Project.ProjectType == "Adventure" ) )
       {
         return true;
       }
@@ -3035,9 +3091,9 @@ redo_from_start:;
     private bool ProjectTypeWantsScreenDataInHiLoTable()
     {
       if ( ( m_Project.ProjectType == "Cartridge" )
-      || ( m_Project.ProjectType == "Hyperion" )
-      || ( m_Project.ProjectType == "Adventure" )
-      || ( m_Project.ProjectType == "Wonderland" ) )
+      ||   ( m_Project.ProjectType == "Hyperion" )
+      ||   ( m_Project.ProjectType == "Adventure" )
+      ||   ( m_Project.ProjectType == "Wonderland" ) )
       {
         return true;
       }
@@ -3274,1094 +3330,1103 @@ redo_from_start:;
       }
       string result = "";
 
-      // element constants
-      int     elementIndex = m_Project.ExportConstantOffset;
-      foreach ( Project.Element element in m_Project.Elements )
+      if ( !ProjectTypeOnlyExportsObjectGrid() )
       {
-        result += "EL_" + m_Project.ExportPrefix + "_" + SanitizeName( element );
-        result += " = " + elementIndex + "\r\n";
-
-        ++elementIndex;
-      }
-      result += "\r\n";
-
-      // element size
-      result += m_Project.ExportPrefix + "ELEMENT_WIDTH_TABLE\r\n!byte ";
-      elementIndex = 0;
-      foreach ( Project.Element element in m_Project.Elements )
-      {
-        result += element.Characters.Width.ToString();
-        if ( elementIndex + 1 < m_Project.Elements.Count )
+        // element constants
+        int     elementIndex = m_Project.ExportConstantOffset;
+        foreach ( Project.Element element in m_Project.Elements )
         {
-          result += ",";
+          result += "EL_" + m_Project.ExportPrefix + "_" + SanitizeName( element );
+          result += " = " + elementIndex + "\r\n";
+
+          ++elementIndex;
         }
-        ++elementIndex;
-      }
-      result += "\r\n";
+        result += "\r\n";
 
-      // element size
-      result += m_Project.ExportPrefix + "ELEMENT_HEIGHT_TABLE\r\n!byte ";
-      elementIndex = 0;
-      foreach ( Project.Element element in m_Project.Elements )
-      {
-        result += element.Characters.Height.ToString();
-        if ( elementIndex + 1 < m_Project.Elements.Count )
+        // element size
+        result += m_Project.ExportPrefix + "ELEMENT_WIDTH_TABLE\r\n!byte ";
+        elementIndex = 0;
+        foreach ( Project.Element element in m_Project.Elements )
         {
-          result += ",";
-        }
-        ++elementIndex;
-      }
-      result += "\r\n";
-
-      // optimize export (collapse data/elements)
-      System.Collections.Generic.List<DataInfo>     elementDatas = new List<DataInfo>();
-      System.Collections.Generic.List<DataInfo>     elementColor = new List<DataInfo>();
-      elementIndex = 0;
-      foreach ( Project.Element element in m_Project.Elements )
-      {
-        DataInfo    dataChar = new DataInfo();
-        DataInfo    dataColor = new DataInfo();
-
-        dataChar.Data = new GR.Memory.ByteBuffer();
-        dataChar.Name = "DATA_EL_" + m_Project.ExportPrefix + "_" + SanitizeName( element );
-        dataChar.IsChar = true;
-        dataColor.Data = new GR.Memory.ByteBuffer();
-        dataColor.Name = "COLOR_EL_" + m_Project.ExportPrefix + "_" + SanitizeName( element );
-        dataColor.IsChar = false;
-
-        if ( ProjectTypeWantsElementDataColumnRow() )
-        {
-          for ( int i = 0; i < element.Characters.Width; ++i )
+          result += element.Characters.Width.ToString();
+          if ( elementIndex + 1 < m_Project.Elements.Count )
           {
-            for ( int j = 0; j < element.Characters.Height; ++j )
-            {
-              dataChar.Data.AppendU8( element.Characters[i, j].Char );
-              dataColor.Data.AppendU8( element.Characters[i, j].Color );
-            }
+            result += ",";
           }
+          ++elementIndex;
         }
-        else
+        result += "\r\n";
+
+        // element size
+        result += m_Project.ExportPrefix + "ELEMENT_HEIGHT_TABLE\r\n!byte ";
+        elementIndex = 0;
+        foreach ( Project.Element element in m_Project.Elements )
         {
-          for ( int j = 0; j < element.Characters.Height; ++j )
+          result += element.Characters.Height.ToString();
+          if ( elementIndex + 1 < m_Project.Elements.Count )
+          {
+            result += ",";
+          }
+          ++elementIndex;
+        }
+        result += "\r\n";
+
+        // optimize export (collapse data/elements)
+        System.Collections.Generic.List<DataInfo>     elementDatas = new List<DataInfo>();
+        System.Collections.Generic.List<DataInfo>     elementColor = new List<DataInfo>();
+        elementIndex = 0;
+        foreach ( Project.Element element in m_Project.Elements )
+        {
+          DataInfo    dataChar = new DataInfo();
+          DataInfo    dataColor = new DataInfo();
+
+          dataChar.Data = new GR.Memory.ByteBuffer();
+          dataChar.Name = "DATA_EL_" + m_Project.ExportPrefix + "_" + SanitizeName( element );
+          dataChar.IsChar = true;
+          dataColor.Data = new GR.Memory.ByteBuffer();
+          dataColor.Name = "COLOR_EL_" + m_Project.ExportPrefix + "_" + SanitizeName( element );
+          dataColor.IsChar = false;
+
+          if ( ProjectTypeWantsElementDataColumnRow() )
           {
             for ( int i = 0; i < element.Characters.Width; ++i )
             {
-              dataChar.Data.AppendU8( element.Characters[i, j].Char );
-              dataColor.Data.AppendU8( element.Characters[i, j].Color );
-            }
-          }
-        }
-        elementDatas.Add( dataChar );
-        elementColor.Add( dataColor );
-
-        ++elementIndex;
-      }
-
-      var elementBuffers = new List<DataInfo>();
-      elementBuffers.AddRange( elementDatas );
-
-      if ( ProjectTypeAllowsColorInElements() )
-      {
-        elementBuffers.AddRange( elementColor );
-      }
-
-      //CollapseBuffers( elementDatas );
-      //CollapseBuffers( elementColor );
-      CollapseBuffers( elementBuffers );
-
-      result += ExportElementTable( m_Project, elementBuffers, 0 );
-      if ( ProjectTypeAllowsColorInElements() )
-      {
-        result += ExportElementColorTable( m_Project, elementBuffers, elementDatas.Count );
-      }
-
-      var  workList = new List<DataInfo>( elementBuffers );
-
-      while ( workList.Count > 0 )
-      {
-        DataInfo data = workList[0];
-
-        //Debug.Log( "Checking " + data.Name );
-
-        if ( ( data.ReplacementData != null )
-        && ( data.NextData == null )
-        && ( data.PreviousData == null ) )
-        {
-          //Debug.Log( "Removing data " + data.Name + " with replacement " + data.ReplacementData.Name );
-          workList.RemoveAt( 0 );
-          continue;
-        }
-        if ( data.PreviousData != null )
-        {
-          // keep for later
-          //Debug.Log( "move to back " + data.Name );
-          workList.RemoveAt( 0 );
-          workList.Add( data );
-          continue;
-        }
-
-        //Debug.Log( "Insert " + data.Name );
-        result += data.Name + "\r\n";
-        result += "!byte ";
-
-insert_now:;
-        if ( data.NextData != null )
-        {
-          for ( int i = 0; i < data.Data.Length; ++i )
-          {
-            result += data.Data.ByteAt( i ).ToString();
-
-            if ( i + 1 == data.Data.Length - data.NextData.OffsetInPreviousData )
-            {
-              //result += "\r\n;was " + data.NextData.Name + "\r\n!byte ";
-              result += "\r\n" + data.NextData.Name + "\r\n!byte ";
-
-              //Debug.Log( "done, remove " + data.Name );
-              workList.RemoveAt( 0 );
-              break;
-            }
-            result += ",";
-          }
-          if ( workList.Contains( data.NextData ) )
-          {
-            //Debug.Log( "Move to top " + data.NextData.Name );
-            workList.Remove( data.NextData );
-            workList.Insert( 0, data.NextData );
-            data = data.NextData;
-            goto insert_now;
-          }
-        }
-        else
-        {
-          for ( int i = 0; i < data.Data.Length; ++i )
-          {
-            result += data.Data.ByteAt( i ).ToString();
-            if ( i + 1 < data.Data.Length )
-            {
-              result += ",";
-            }
-            else
-            {
-              result += "\r\n";
-            }
-          }
-        }
-        //Debug.Log( "Removing " + data.Name );
-        workList.RemoveAt( 0 );
-        /*
-        while ( data.NextData != null )
-        {
-          data = data.NextData;
-
-          result += "; was " + data.Name + "\r\n";
-          result += "!byte ";
-          for ( int i = (int)data.Data.Length - data.OffsetInPreviousData; i < data.Data.Length; ++i )
-          {
-            result += data.Data.ByteAt( i ).ToString();
-            if ( i + 1 < data.Data.Length )
-            {
-              result += ",";
-            }
-            else
-            {
-              result += "\r\n";
-            }
-          }
-          ++j;
-          if ( j >= elementDatas.Count )
-          {
-            break;
-          }
-          continue;
-        }*/
-      }
-
-      /*
-      if ( ProjectTypeAllowsColorInElements() )
-      {
-        foreach ( DataInfo data in elementColor )
-        {
-          if ( data.ReplacementData != null )
-          {
-            continue;
-          }
-          result += data.Name + "\r\n";
-          result += "!byte ";
-          for ( int i = 0; i < data.Data.Length; ++i )
-          {
-            result += data.Data.ByteAt( i ).ToString();
-            if ( i + 1 < data.Data.Length )
-            {
-              result += ",";
-            }
-            else
-            {
-              result += "\r\n";
-            }
-          }
-        }
-      }*/
-      result += "\r\n";
-      result += "\r\n";
-
-      // screens
-      int screenIndex = 0;
-      int totalScreenIndex = 0;
-      if ( ProjectTypeWantsScreenDataInHiLoTable() )
-      {
-        result += m_Project.ExportPrefix + "_SCREEN_DATA_TABLE_LO\r\n";
-        screenIndex = 1;
-        totalScreenIndex = 0;
-        foreach ( Project.Screen screen in m_Project.Screens )
-        {
-          if ( ScreenNeedsExport( screen, totalScreenIndex ) )
-          {
-            result += "          !byte <( " + m_Project.ExportPrefix + "_LEVEL_" + screenIndex.ToString() + " )\r\n";
-            ++screenIndex;
-          }
-          ++totalScreenIndex;
-        }
-        result += "          !byte 0\r\n";
-
-        result += m_Project.ExportPrefix + "_SCREEN_DATA_TABLE_HI\r\n";
-        screenIndex = 1;
-        totalScreenIndex = 0;
-        foreach ( Project.Screen screen in m_Project.Screens )
-        {
-          if ( ScreenNeedsExport( screen, totalScreenIndex ) )
-          {
-            result += "          !byte >( " + m_Project.ExportPrefix + "_LEVEL_" + screenIndex.ToString() + " )\r\n";
-            ++screenIndex;
-          }
-          ++totalScreenIndex;
-        }
-        result += "          !byte 0\r\n";
-        result += "\r\n\r\n";
-      }
-      else
-      {
-        result += m_Project.ExportPrefix + "_SCREEN_DATA_TABLE\r\n";
-        screenIndex = 1;
-        totalScreenIndex = 0;
-        foreach ( Project.Screen screen in m_Project.Screens )
-        {
-          if ( ScreenNeedsExport( screen, totalScreenIndex ) )
-          {
-            result += "          !word " + m_Project.ExportPrefix + "_LEVEL_" + screenIndex.ToString() + "\r\n";
-            ++screenIndex;
-          }
-          ++totalScreenIndex;
-        }
-        result += "          !word 0\r\n";
-        result += "\r\n\r\n";
-      }
-
-      int     searchObjectIndex = 0;
-      screenIndex = 1;
-      totalScreenIndex = 0;
-      int     objectAutoIndex = 0;
-      foreach ( Project.Screen screen in m_Project.Screens )
-      {
-        if ( !ScreenNeedsExport( screen, totalScreenIndex ) )
-        {
-          ++totalScreenIndex;
-          continue;
-        }
-        result += m_Project.ExportPrefix + "_LEVEL_" + screenIndex.ToString() + " ;" + screen.Name + "\r\n";
-        if ( ( ProjectTypeWantsScreenSize() )
-        && ( !ProjectTypeRequiresSortedElementsByX() )
-        && ( !ProjectTypeRequiresSortedElementsByY() ) )
-        {
-          // scroll size
-          result += "          !byte " + screen.Width.ToString() + "\r\n";
-        }
-        else if ( ( ProjectTypeWantsScreenSize() )
-        && ( ProjectTypeRequiresSortedElementsByX() ) )
-        {
-          // scroll size
-          result += "          !word " + screen.Width.ToString() + "\r\n";
-        }
-
-        List<Project.ScreenElement>     levelElements = screen.DisplayedElements;
-
-        if ( ProjectTypeRequiresSortedElementsByX() )
-        {
-          levelElements = SortElementsByX( levelElements );
-        }
-        if ( ProjectTypeRequiresSortedElementsByY() )
-        {
-          levelElements = SortElementsByY( levelElements );
-        }
-
-        string prevExportElementType = "";
-        string exportElementType = "";
-        string exportData = "";
-
-
-        if ( ProjectTypeAlwaysRequiresLevelConfig() )
-        {
-          result += "          !byte " + screen.ConfigByte.ToString() + "\r\n";
-        }
-        else if ( screen.ConfigByte != 0 )
-        {
-          result += "          !byte LD_LEVEL_CONFIG," + screen.ConfigByte.ToString() + "\r\n";
-        }
-
-        string prevElementName = "";
-        string prevSpawnSpotType = "";
-        int localElementIndex = 0;
-        int   currentElementX = 0;
-        int   currentElementY = 0;
-
-        foreach ( Project.ScreenElement screenElement in levelElements )
-        {
-          if ( ( ProjectTypeRequiresSortedElementsByX() )
-          && ( screenElement.X > currentElementX ) )
-          {
-            int     delta = screenElement.X - currentElementX;
-
-            while ( delta > 31 )
-            {
-              result += "          !byte LDF_X_POS + 31; " + screenElement.X.ToString() + "\r\n";
-              delta -= 31;
-            }
-            if ( delta > 0 )
-            {
-              result += "          !byte LDF_X_POS + " + delta + "; " + screenElement.X.ToString() + "\r\n";
-            }
-            currentElementX = screenElement.X;
-          }
-          if ( ( ProjectTypeRequiresSortedElementsByY() )
-          && ( screenElement.Y > currentElementY ) )
-          {
-            result += "          !byte LDF_Y_POS + " + ( screenElement.Y - currentElementY ).ToString() + "; " + screenElement.Y.ToString() + "\r\n";
-            currentElementY = screenElement.Y;
-          }
-
-          result += "          !byte ";
-
-          string elementName = "invalid";
-          if ( screenElement.Index != -1 )
-          {
-            elementName = "EL_" + m_Project.ExportPrefix + "_" + SanitizeName( m_Project.Elements[screenElement.Index] );
-          }
-          int       elementUseIndex = screenElement.Index;
-          if ( !ScreenElementUsesElement( screenElement ) )
-          {
-            elementUseIndex = 0;
-          }
-
-          switch ( screenElement.Type )
-          {
-            case Project.ScreenElementType.LD_ELEMENT:
+              for ( int j = 0; j < element.Characters.Height; ++j )
               {
-                exportElementType = "LD_ELEMENT";
-
-                int xPos = screenElement.X;
-                int yPos = screenElement.Y;
-
-                if ( ( ProjectTypeRequiresSortedElementsByX() )
-                || ( ProjectTypeRequiresSortedElementsByY() ) )
-                {
-                  if ( elementName == prevElementName )
-                  {
-                    // FFxxxxxx
-                    exportData = "LDF_PREV_ELEMENT + " + yPos.ToString() + "\r\n";
-                  }
-                  else
-                  {
-                    exportData = "LDF_ELEMENT + " + yPos.ToString() + "," + elementName + "\r\n";
-                  }
-                }
-                else
-                {
-                  if ( ( ProjectTypeAllowsMoreThan256Elements() )
-                  && ( elementUseIndex >= 256 ) )
-                  {
-                    xPos |= 0x40;
-                    elementName = "( " + elementName + " & $ff )";
-                  }
-                  if ( ProjectTypeAllowsFlagsInXPos() )
-                  {
-                    xPos |= ( screenElement.Flags << 6 );
-                  }
-                  if ( elementName == prevElementName )
-                  {
-                    yPos |= 0x80;
-                    exportData = xPos.ToString() + "," + yPos.ToString() + "\r\n";
-                  }
-                  else
-                  {
-                    exportData = xPos.ToString() + "," + yPos.ToString() + "," + elementName + "\r\n";
-                  }
-                }
+                dataChar.Data.AppendU8( element.Characters[i, j].Char );
+                dataColor.Data.AppendU8( element.Characters[i, j].Color );
               }
-              break;
-            case Project.ScreenElementType.LD_ELEMENT_LINE_H:
-              {
-                exportElementType = "LD_ELEMENT_LINE_H";
-
-                int xPos = screenElement.X;
-                int yPos = screenElement.Y;
-
-                if ( ProjectTypeRequiresSortedElementsByX() )
-                {
-                  if ( elementName == prevElementName )
-                  {
-                    // FFxxxxxx
-                    exportData = "LDF_PREV_ELEMENT_LINE + " + yPos.ToString() + "," + screenElement.Repeats + "\r\n";
-                  }
-                  else
-                  {
-                    exportData = "LDF_ELEMENT_LINE + " + yPos.ToString() + "," + screenElement.Repeats + "," + elementName + "\r\n";
-                  }
-                }
-                else
-                {
-                  if ( !ProjectTypeAllowsCombiningYRepeatsWith3Bits() )
-                  {
-                    if ( ProjectTypeAllowsFlagsInXPos() )
-                    {
-                      xPos |= ( screenElement.Flags << 6 );
-                    }
-
-                    if ( elementName == prevElementName )
-                    {
-                      yPos |= 0x80;
-                      exportData = xPos.ToString() + "," + yPos.ToString() + "," + screenElement.Repeats.ToString() + "\r\n";
-                    }
-                    else
-                    {
-                      exportData = xPos.ToString() + "," + yPos.ToString() + "," + screenElement.Repeats.ToString() + "," + elementName + "\r\n";
-                    }
-                  }
-                  else
-                  {
-                    bool  repeatElement = false;
-                    if ( ( ProjectTypeSupportsElementLineRepeat() )
-                    && ( elementName == prevElementName ) )
-                    {
-                      exportElementType = "LD_ELEMENT_LINE_H_REPEAT";
-                      repeatElement = true;
-                    }
-                    else
-                    {
-                      exportElementType = "LD_ELEMENT_LINE_H";
-                    }
-
-                    if ( ( ProjectTypeAllowsMoreThan256Elements() )
-                    && ( elementUseIndex >= 256 ) )
-                    {
-                      xPos |= 0x40;
-                      elementName = "( " + elementName + " & $ff )";
-                    }
-                    if ( ProjectTypeAllowsFlagsInXPos() )
-                    {
-                      xPos |= ( screenElement.Flags << 6 );
-                    }
-
-
-                    if ( screenElement.Repeats <= 7 )
-                    {
-                      int combinedYRepeats = yPos + ( screenElement.Repeats << 5 );
-                      exportData = xPos.ToString() + "," + combinedYRepeats.ToString();
-                    }
-                    else
-                    {
-                      exportData = xPos.ToString() + "," + screenElement.Y.ToString() + "," + screenElement.Repeats.ToString();
-                    }
-
-                    if ( !repeatElement )
-                    {
-                      exportData += "," + elementName + "\r\n";
-                    }
-                    else
-                    {
-                      exportData += "\r\n";
-                    }
-                  }
-                }
-              }
-              break;
-            case Project.ScreenElementType.LD_ELEMENT_LINE_V:
-              {
-                if ( ProjectTypeRequiresSortedElementsByX() )
-                {
-                  int yPos = screenElement.Y;
-                  if ( elementName == prevElementName )
-                  {
-                    // FFxxxxxx
-                    exportData = "LDF_PREV_ELEMENT_AREA + " + yPos.ToString() + ", 1," + ( 0x80 | screenElement.Repeats ).ToString() + "\r\n";
-                  }
-                  else
-                  {
-                    exportData = "LDF_ELEMENT_AREA + " + yPos.ToString() + ", 1," + screenElement.Repeats + "," + elementName + "\r\n";
-                  }
-                }
-                else
-                {
-                  exportElementType = "LD_ELEMENT_LINE_V";
-
-                  int xPos = screenElement.X;
-                  int yPos = screenElement.Y;
-
-                  if ( !ProjectTypeAllowsCombiningYRepeatsWith3Bits() )
-                  {
-                    if ( ProjectTypeAllowsFlagsInXPos() )
-                    {
-                      xPos |= ( screenElement.Flags << 6 );
-                    }
-
-                    if ( elementName == prevElementName )
-                    {
-                      yPos |= 0x80;
-                      exportData = xPos.ToString() + "," + yPos.ToString() + "," + screenElement.Repeats.ToString() + "\r\n";
-                    }
-                    else
-                    {
-                      exportData = xPos.ToString() + "," + yPos.ToString() + "," + screenElement.Repeats.ToString() + "," + elementName + "\r\n";
-                    }
-                  }
-                  else
-                  {
-                    bool  repeatElement = false;
-                    if ( ( ProjectTypeSupportsElementLineRepeat() )
-                    && ( elementName == prevElementName ) )
-                    {
-                      exportElementType = "LD_ELEMENT_LINE_V_REPEAT";
-                      repeatElement = true;
-                    }
-                    else
-                    {
-                      exportElementType = "LD_ELEMENT_LINE_V";
-                    }
-
-                    if ( ( ProjectTypeAllowsMoreThan256Elements() )
-                    && ( elementUseIndex >= 256 ) )
-                    {
-                      xPos |= 0x40;
-                      elementName = "( " + elementName + " & $ff )";
-                    }
-                    if ( ProjectTypeAllowsFlagsInXPos() )
-                    {
-                      xPos |= ( screenElement.Flags << 6 );
-                    }
-
-                    if ( screenElement.Repeats <= 7 )
-                    {
-                      int combinedYRepeats = yPos + ( screenElement.Repeats << 5 );
-
-                      exportData = xPos.ToString() + "," + combinedYRepeats.ToString();
-                    }
-                    else
-                    {
-                      exportData = xPos.ToString() + "," + screenElement.Y.ToString() + "," + screenElement.Repeats.ToString();
-                    }
-
-                    if ( !repeatElement )
-                    {
-                      exportData += "," + elementName + "\r\n";
-                    }
-                    else
-                    {
-                      exportData += "\r\n";
-                    }
-                  }
-                }
-              }
-              break;
-            case Project.ScreenElementType.LD_ELEMENT_AREA:
-              {
-                exportElementType = "LD_ELEMENT_AREA";
-
-                int xPos = screenElement.X;
-                int yPos = screenElement.Y;
-
-                if ( ProjectTypeRequiresSortedElementsByX() )
-                {
-                  if ( elementName == prevElementName )
-                  {
-                    // FFxxxxxx
-                    exportData = "LDF_PREV_ELEMENT_AREA + " + yPos.ToString() + "," + screenElement.Repeats + "," + ( 0x80 | screenElement.Repeats2 ).ToString() + "\r\n";
-                  }
-                  else
-                  {
-                    exportData = "LDF_ELEMENT_AREA + " + yPos.ToString() + "," + screenElement.Repeats + "," + screenElement.Repeats2 + "," + elementName + "\r\n";
-                  }
-                }
-                else
-                {
-                  if ( ( ProjectTypeAllowsMoreThan256Elements() )
-                  && ( elementUseIndex >= 256 ) )
-                  {
-                    xPos |= 0x40;
-                    elementName = "( " + elementName + " & $ff )";
-                  }
-                  if ( ProjectTypeAllowsFlagsInXPos() )
-                  {
-                    xPos |= ( screenElement.Flags << 6 );
-                  }
-
-                  if ( elementName == prevElementName )
-                  {
-                    yPos |= 0x80;
-                    exportData = xPos.ToString() + "," + yPos.ToString() + ","
-                              + screenElement.Repeats.ToString() + ","
-                              + screenElement.Repeats2.ToString() + "\r\n";
-                  }
-                  else
-                  {
-                    exportData = xPos.ToString() + "," + yPos.ToString() + ","
-                              + screenElement.Repeats.ToString() + ","
-                              + screenElement.Repeats2.ToString() + ","
-                              + elementName + "\r\n";
-                  }
-                }
-              }
-              break;
-            case Project.ScreenElementType.LD_LINE_H:
-              {
-                exportElementType = "LD_LINE_H";
-                int xPos = screenElement.X;
-
-                if ( ProjectTypeAllowsFlagsInXPos() )
-                {
-                  xPos |= ( screenElement.Flags << 6 );
-                }
-
-                if ( ProjectTypeAllowsColorInElements() )
-                {
-                  exportData = xPos.ToString() + "," + screenElement.Y.ToString() + "," + screenElement.Repeats.ToString() + ","
-                            + screenElement.Char.ToString() + "," + screenElement.Color.ToString() + "\r\n";
-                }
-                else
-                {
-                  exportData = xPos.ToString() + "," + screenElement.Y.ToString() + "," + screenElement.Repeats.ToString() + ","
-                            + screenElement.Char.ToString() + "\r\n";
-                }
-              }
-              break;
-            case Project.ScreenElementType.LD_LINE_V:
-              {
-                exportElementType = "LD_LINE_V";
-
-                int xPos = screenElement.X;
-
-                if ( ProjectTypeAllowsFlagsInXPos() )
-                {
-                  xPos |= ( screenElement.Flags << 6 );
-                }
-
-                if ( ProjectTypeAllowsColorInElements() )
-                {
-                  exportData = xPos.ToString() + "," + screenElement.Y.ToString() + "," + screenElement.Repeats.ToString() + ","
-                            + screenElement.Char.ToString() + "," + screenElement.Color.ToString() + "\r\n";
-                }
-                else
-                {
-                  exportData = xPos.ToString() + "," + screenElement.Y.ToString() + "," + screenElement.Repeats.ToString() + ","
-                            + screenElement.Char.ToString() + "\r\n";
-                }
-              }
-              break;
-            case Project.ScreenElementType.LD_SEARCH_OBJECT:
-              {
-                exportElementType = "LD_SEARCH_OBJECT";
-                int     xPos = screenElement.X;
-
-                if ( ProjectTypeAllowsFlagsInXPos() )
-                {
-                  xPos |= ( screenElement.Flags << 6 );
-                }
-
-                if ( ( ProjectTypeAllowsMoreThan256Elements() )
-                && ( elementUseIndex >= 256 ) )
-                {
-                  xPos |= 0x40;
-                  elementName = "( " + elementName + " & $ff )";
-                }
-                if ( ProjectTypeHas16BitIndex() )
-                {
-                  exportData = xPos.ToString() + "," + screenElement.Y.ToString() + "," + elementName + ","
-                            + ( searchObjectIndex >> 8 ).ToString() + ","
-                            + ( searchObjectIndex & 0xff ).ToString() + "\r\n";
-                }
-                else
-                {
-                  exportData = xPos.ToString() + "," + screenElement.Y.ToString() + "," + elementName + ","
-                            + screenElement.SearchObjectIndex.ToString() + "\r\n";
-                }
-                ++searchObjectIndex;
-              }
-              break;
-            case Project.ScreenElementType.LD_LINE_H_ALT:
-              exportElementType = "LD_LINE_H_ALT";
-              if ( ProjectTypeAllowsColorInElements() )
-              {
-                exportData = screenElement.X.ToString() + "," + screenElement.Y.ToString() + "," + screenElement.Repeats.ToString() + ","
-                          + screenElement.Char.ToString() + "," + screenElement.Color.ToString() + "\r\n";
-              }
-              else
-              {
-                exportData = screenElement.X.ToString() + "," + screenElement.Y.ToString() + "," + screenElement.Repeats.ToString() + ","
-                          + screenElement.Char.ToString() + "\r\n";
-              }
-              break;
-            case Project.ScreenElementType.LD_LINE_V_ALT:
-              exportElementType = "LD_LINE_V_ALT";
-              if ( ProjectTypeAllowsColorInElements() )
-              {
-                exportData = screenElement.X.ToString() + "," + screenElement.Y.ToString() + "," + screenElement.Repeats.ToString() + ","
-                          + screenElement.Char.ToString() + "," + screenElement.Color.ToString() + "\r\n";
-              }
-              else
-              {
-                exportData = screenElement.X.ToString() + "," + screenElement.Y.ToString() + "," + screenElement.Repeats.ToString() + ","
-                          + screenElement.Char.ToString() + "\r\n";
-              }
-              break;
-            case Project.ScreenElementType.LD_AREA:
-              {
-                exportElementType = "LD_AREA";
-
-                int xPos = screenElement.X;
-
-                if ( ProjectTypeAllowsFlagsInXPos() )
-                {
-                  xPos |= ( screenElement.Flags << 6 );
-                }
-
-                if ( !ProjectTypeAllowsColorInElements() )
-                {
-                  exportData = xPos.ToString() + "," + screenElement.Y.ToString() + ","
-                            + screenElement.Repeats.ToString() + ","
-                            + screenElement.Repeats2.ToString() + ","
-                            + screenElement.Char.ToString() + "\r\n";
-                }
-                else
-                {
-                  exportData = xPos.ToString() + "," + screenElement.Y.ToString() + ","
-                            + screenElement.Repeats.ToString() + ","
-                            + screenElement.Repeats2.ToString() + ","
-                            + screenElement.Char.ToString() + ","
-                            + screenElement.Color.ToString() + "\r\n";
-                }
-              }
-              break;
-            case Project.ScreenElementType.LD_OBJECT:
-              if ( ProjectTypeHasCompactedObjects() )
-              {
-                if ( ProjectTypeRequiresSortedElementsByX() )
-                {
-                  exportData = "LD_OBJECT | " + screenElement.Object.TemplateIndex.ToString() + ", " + screenElement.Y.ToString() + System.Environment.NewLine;
-                }
-                else
-                {
-                  exportData = "LD_OBJECT | " + screenElement.Object.TemplateIndex.ToString() + ", " + screenElement.X.ToString() + System.Environment.NewLine;
-                }
-                break;
-              }
-              exportElementType = "LD_OBJECT";
-              if ( ProjectTypeHasAutoObjectIndex() )
-              {
-                // add behaviour/bounds
-                if ( screenElement.Object.TemplateIndex != -1 )
-                {
-                  exportData = screenElement.X.ToString() + "," + screenElement.Y.ToString() + ","
-                            + "TYPE_" + SanitizeName( m_Project.ObjectTemplates[screenElement.Object.TemplateIndex] ) + ","
-                            + screenElement.Object.Color.ToString() + ","
-                            + objectAutoIndex.ToString() + ",";
-
-                  exportData += screenElement.Object.Speed.ToString() + ",";
-                  if ( ( screenElement.Object.MoveBorderLeft != 0 )
-                  || ( screenElement.Object.MoveBorderRight != 0 ) )
-                  {
-                    exportData += ( screenElement.X - screenElement.Object.MoveBorderLeft ).ToString() + "," + ( screenElement.X + screenElement.Object.MoveBorderRight ).ToString();
-                  }
-                  else
-                  {
-                    exportData += ( screenElement.Y - screenElement.Object.MoveBorderTop ).ToString() + "," + ( screenElement.Y + screenElement.Object.MoveBorderBottom ).ToString();
-                  }
-                  ++objectAutoIndex;
-                }
-                else
-                {
-                  exportData += "LD_OBJECT - not correct!";
-                }
-                exportData += "\r\n";
-              }
-              else if ( ProjectTypeAllowsObjectBehaviour() )
-              {
-                // add behaviour/bounds
-                if ( screenElement.Object.TemplateIndex != -1 )
-                {
-                  int     behaviour = 0;
-                  if ( !m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].Behaviours.ContainsKey( screenElement.Object.Behaviour ) )
-                  {
-                    //System.Windows.Forms.MessageBox.Show( "Missing behaviour " + screenElement.Object.Behaviour.ToString() + " for " + m_Project.ObjectTemplates[screenElement.Object.TemplateIndex] );
-                    Debug.Log( "Missing behaviour " + screenElement.Object.Behaviour.ToString() + " for " + m_Project.ObjectTemplates[screenElement.Object.TemplateIndex] + " in " + screen.Name + ": " + screenIndex );
-                  }
-                  else
-                  {
-                    behaviour = m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].Behaviours[screenElement.Object.Behaviour].Value;
-                  }
-                  exportData = screenElement.X.ToString() + "," + screenElement.Y.ToString() + ","
-                            + "TYPE_" + SanitizeName( m_Project.ObjectTemplates[screenElement.Object.TemplateIndex] ) + ","
-                            + screenElement.Object.Color.ToString() + ","
-                            + behaviour.ToString() + ",";
-
-                  exportData += screenElement.Object.Speed.ToString() + ",";
-                  if ( ( screenElement.Object.MoveBorderLeft != 0 )
-                  || ( screenElement.Object.MoveBorderRight != 0 ) )
-                  {
-                    exportData += ( screenElement.X - screenElement.Object.MoveBorderLeft ).ToString() + "," + ( screenElement.X + screenElement.Object.MoveBorderRight ).ToString();
-                  }
-                  else
-                  {
-                    exportData += ( screenElement.Y - screenElement.Object.MoveBorderTop ).ToString() + "," + ( screenElement.Y + screenElement.Object.MoveBorderBottom ).ToString();
-                  }
-                }
-                else
-                {
-                  exportData += "LD_OBJECT - not correct!";
-                }
-                exportData += "\r\n";
-              }
-              else if ( ProjectTypeAllowsOptionalObjectData() )
-              {
-                if ( screenElement.Object.TemplateIndex != -1 )
-                {
-                  if ( screenElement.Object.Optional != Project.GameObject.OptionalType.ALWAYS_SHOWN )
-                  {
-                    if ( screenElement.Object.Optional == Project.GameObject.OptionalType.SHOWN_IF_OPTIONAL_SET )
-                    {
-                      exportElementType = "LD_OPTIONAL_SHOWN_OBJECT";
-                      exportData = screenElement.Object.OptionalValue.ToString() + ","
-                                + screenElement.X.ToString() + "," + screenElement.Y.ToString() + ","
-                                + "TYPE_" + SanitizeName( m_Project.ObjectTemplates[screenElement.Object.TemplateIndex] )
-                                + "\r\n";
-                    }
-                    else
-                    {
-                      exportElementType = "LD_OPTIONAL_HIDDEN_OBJECT";
-                      exportData = screenElement.Object.OptionalValue.ToString() + ","
-                                + screenElement.X.ToString() + "," + screenElement.Y.ToString() + ","
-                                + "TYPE_" + SanitizeName( m_Project.ObjectTemplates[screenElement.Object.TemplateIndex] )
-                                + "\r\n";
-                    }
-                  }
-                  else
-                  {
-                    exportData = screenElement.X.ToString() + "," + screenElement.Y.ToString() + ","
-                              + "TYPE_" + SanitizeName( m_Project.ObjectTemplates[screenElement.Object.TemplateIndex] ) + "\r\n";
-                  }
-                }
-                else
-                {
-                  Debug.Log( "Invalid Object in screen " + screenIndex + " at line " + localElementIndex );
-                }
-              }
-              else if ( ProjectTypeAllowsObjectData() )
-              {
-                // !byte LD_OBJECT,5,4,TYPE_PLAYER_DEAN
-                if ( screenElement.Object.TemplateIndex != -1 )
-                {
-                  if ( screenElement.Object.Data != 0 )
-                  {
-                    exportElementType = "LD_DATA_OBJECT";
-                    exportData = screenElement.Object.Data.ToString() + ","
-                              + screenElement.X.ToString() + "," + screenElement.Y.ToString() + ","
-                              + "TYPE_" + SanitizeName( m_Project.ObjectTemplates[screenElement.Object.TemplateIndex] )
-                              + "\r\n";
-                  }
-                  else
-                  {
-                    exportData = screenElement.X.ToString() + "," + screenElement.Y.ToString() + ","
-                              + "TYPE_" + SanitizeName( m_Project.ObjectTemplates[screenElement.Object.TemplateIndex] ) + "\r\n";
-                  }
-                }
-                else
-                {
-                  Debug.Log( "Invalid Object in screen " + screenIndex + " at line " + localElementIndex );
-                }
-              }
-              else
-              {
-                // !byte LD_OBJECT,5,4,TYPE_PLAYER_DEAN
-                if ( screenElement.Object.TemplateIndex != -1 )
-                {
-                  exportData = screenElement.X.ToString() + "," + screenElement.Y.ToString() + ","
-                            + "TYPE_" + SanitizeName( m_Project.ObjectTemplates[screenElement.Object.TemplateIndex] ) + "\r\n";
-                }
-                else
-                {
-                  Debug.Log( "Invalid Object in screen " + screenIndex + " at line " + localElementIndex );
-                }
-              }
-              break;
-            case Project.ScreenElementType.LD_SPAWN_SPOT:
-              exportElementType = "LD_SPAWN_SPOT";
-              if ( screenElement.Object.TemplateIndex != -1 )
-              {
-                string    spawnSpotType = SanitizeName( m_Project.ObjectTemplates[screenElement.Object.TemplateIndex] );
-                if ( prevSpawnSpotType == spawnSpotType )
-                {
-                  int     posY = screenElement.Y | 0x80;
-                  exportData = screenElement.X.ToString() + "," + posY.ToString() + ","
-                            + screenElement.Repeats.ToString() + "\r\n";
-                }
-                else
-                {
-                  exportData = screenElement.X.ToString() + "," + screenElement.Y.ToString() + ","
-                            + "TYPE_" + spawnSpotType + ","
-                            + screenElement.Repeats.ToString() + "\r\n";
-                }
-                prevSpawnSpotType = spawnSpotType;
-              }
-              else
-              {
-                Debug.Log( "Invalid Object in spawn spot in screen " + screenIndex + " at line " + localElementIndex );
-              }
-              break;
-            case Project.ScreenElementType.LD_DOOR:
-              exportElementType = "LD_DOOR";
-              if ( ProjectTypeHasSimpleDoors() )
-              {
-                exportData = screenElement.X.ToString() + ","
-                                     + screenElement.Y.ToString() + ","
-                                     + elementName + "\r\n";
-              }
-              else if ( ProjectTypeAllowsDoorWithTarget() )
-              {
-                exportData = screenElement.TargetLevel.ToString() + ","
-                                     + screenElement.TargetX.ToString() + ","
-                                     + screenElement.TargetY.ToString() + ","
-                                     + screenElement.X.ToString() + ","
-                                     + screenElement.Y.ToString() + ","
-                                     + elementName + "\r\n";
-              }
-              else
-              {
-                exportData = screenElement.X.ToString() + ","
-                                     + screenElement.Y.ToString() + ","
-                                     + elementName + ","
-                                     + screenElement.TargetX.ToString() + "\r\n";
-              }
-              break;
-            case Project.ScreenElementType.LD_CLUE:
-              exportElementType = "LD_CLUE";
-              if ( ProjectTypeAllowsObjectTypeInClue() )
-              {
-                exportData = screenElement.X.ToString() + ","
-                                     + screenElement.Y.ToString() + ","
-                                     + elementName + ","
-                                     + screenElement.Repeats.ToString() + "\r\n";
-              }
-              else
-              {
-                exportData = screenElement.X.ToString() + ","
-                                     + screenElement.Y.ToString() + ","
-                                     + screenElement.Repeats.ToString() + "\r\n";
-              }
-              break;
-            case Project.ScreenElementType.LD_SPECIAL:
-              {
-                exportElementType = "LD_SPECIAL";
-
-                int xPos = screenElement.X;
-                int yPos = screenElement.Y;
-
-                if ( ( ProjectTypeAllowsMoreThan256Elements() )
-                && ( elementUseIndex >= 256 ) )
-                {
-                  xPos |= 0x40;
-                  elementName = "( " + elementName + " & $ff )";
-                }
-                if ( ProjectTypeAllowsFlagsInXPos() )
-                {
-                  xPos |= ( screenElement.Flags << 6 );
-                }
-
-                if ( elementName == prevElementName )
-                {
-                  yPos |= 0x80;
-                }
-                if ( elementName == prevElementName )
-                {
-                  exportData = xPos + ","
-                               + yPos + ","
-                               + screenElement.Repeats.ToString() + "\r\n";
-                }
-                else
-                {
-                  exportData = xPos + ","
-                               + yPos + ","
-                               + elementName + ","
-                               + screenElement.Repeats.ToString() + "\r\n";
-                }
-              }
-              break;
-          }
-          if ( screenElement.Type != Project.ScreenElementType.LD_SPAWN_SPOT )
-          {
-            prevSpawnSpotType = "";
-          }
-          // put extra flags in element type
-          if ( ProjectTypeAllowsFlagsInElementType() )
-          {
-            if ( screenElement.Flags != 0 )
-            {
-              // force element byte empty so element type is not reused (would interfere with flags)
-              prevExportElementType = "";
-            }
-          }
-          if ( ( ProjectTypeRequiresSortedElementsByX() )
-          || ( ProjectTypeRequiresSortedElementsByY() ) )
-          {
-            result += exportData;
-          }
-          else if ( ProjectTypeAllowsPrimitiveTypeReuse() )
-          {
-            if ( prevExportElementType != exportElementType )
-            {
-              prevExportElementType = exportElementType;
-              result += exportElementType + "," + exportData;
-            }
-            else
-            {
-              result += exportData;
             }
           }
           else
           {
-            result += exportElementType + "," + exportData;
+            for ( int j = 0; j < element.Characters.Height; ++j )
+            {
+              for ( int i = 0; i < element.Characters.Width; ++i )
+              {
+                dataChar.Data.AppendU8( element.Characters[i, j].Char );
+                dataColor.Data.AppendU8( element.Characters[i, j].Color );
+              }
+            }
           }
+          elementDatas.Add( dataChar );
+          elementColor.Add( dataColor );
 
-          if ( ScreenElementUsesElement( screenElement ) )
-          {
-            prevElementName = elementName;
-          }
-          ++localElementIndex;
+          ++elementIndex;
         }
 
-        result += "          !byte LD_END\r\n";
+        var elementBuffers = new List<DataInfo>();
+        elementBuffers.AddRange( elementDatas );
 
-        result += "\r\n";
-
-        if ( ProjectTypeAllowsExportOfCustomColors() )
+        if ( ProjectTypeAllowsColorInElements() )
         {
-          int   color1 = ( screen.OverrideMC1 != -1 ? screen.OverrideMC1 : m_Project.Charsets[screen.CharsetIndex].Colors.MultiColor1 );
-          int   color2 = ( screen.OverrideMC2 != -1 ? screen.OverrideMC2 : m_Project.Charsets[screen.CharsetIndex].Colors.MultiColor2 );
-
-          result += "          !byte $" + ( ( color1 << 4 ) + color2 ).ToString( "X2" ) + "\r\n";
+          elementBuffers.AddRange( elementColor );
         }
-        result += screen.ExtraData + "\r\n";
 
-        ++screenIndex;
-        ++totalScreenIndex;
+        //CollapseBuffers( elementDatas );
+        //CollapseBuffers( elementColor );
+        CollapseBuffers( elementBuffers );
+
+        result += ExportElementTable( m_Project, elementBuffers, 0 );
+        if ( ProjectTypeAllowsColorInElements() )
+        {
+          result += ExportElementColorTable( m_Project, elementBuffers, elementDatas.Count );
+        }
+
+        var  workList = new List<DataInfo>( elementBuffers );
+
+        while ( workList.Count > 0 )
+        {
+          DataInfo data = workList[0];
+
+          //Debug.Log( "Checking " + data.Name );
+
+          if ( ( data.ReplacementData != null )
+          &&   ( data.NextData == null )
+          &&   ( data.PreviousData == null ) )
+          {
+            //Debug.Log( "Removing data " + data.Name + " with replacement " + data.ReplacementData.Name );
+            workList.RemoveAt( 0 );
+            continue;
+          }
+          if ( data.PreviousData != null )
+          {
+            // keep for later
+            //Debug.Log( "move to back " + data.Name );
+            workList.RemoveAt( 0 );
+            workList.Add( data );
+            continue;
+          }
+
+          //Debug.Log( "Insert " + data.Name );
+          result += data.Name + "\r\n";
+          result += "!byte ";
+
+  insert_now:;
+          if ( data.NextData != null )
+          {
+            for ( int i = 0; i < data.Data.Length; ++i )
+            {
+              result += data.Data.ByteAt( i ).ToString();
+
+              if ( i + 1 == data.Data.Length - data.NextData.OffsetInPreviousData )
+              {
+                //result += "\r\n;was " + data.NextData.Name + "\r\n!byte ";
+                result += "\r\n" + data.NextData.Name + "\r\n!byte ";
+
+                //Debug.Log( "done, remove " + data.Name );
+                workList.RemoveAt( 0 );
+                break;
+              }
+              result += ",";
+            }
+            if ( workList.Contains( data.NextData ) )
+            {
+              //Debug.Log( "Move to top " + data.NextData.Name );
+              workList.Remove( data.NextData );
+              workList.Insert( 0, data.NextData );
+              data = data.NextData;
+              goto insert_now;
+            }
+          }
+          else
+          {
+            for ( int i = 0; i < data.Data.Length; ++i )
+            {
+              result += data.Data.ByteAt( i ).ToString();
+              if ( i + 1 < data.Data.Length )
+              {
+                result += ",";
+              }
+              else
+              {
+                result += "\r\n";
+              }
+            }
+          }
+          //Debug.Log( "Removing " + data.Name );
+          workList.RemoveAt( 0 );
+          /*
+          while ( data.NextData != null )
+          {
+            data = data.NextData;
+
+            result += "; was " + data.Name + "\r\n";
+            result += "!byte ";
+            for ( int i = (int)data.Data.Length - data.OffsetInPreviousData; i < data.Data.Length; ++i )
+            {
+              result += data.Data.ByteAt( i ).ToString();
+              if ( i + 1 < data.Data.Length )
+              {
+                result += ",";
+              }
+              else
+              {
+                result += "\r\n";
+              }
+            }
+            ++j;
+            if ( j >= elementDatas.Count )
+            {
+              break;
+            }
+            continue;
+          }*/
+        }
+
+        /*
+        if ( ProjectTypeAllowsColorInElements() )
+        {
+          foreach ( DataInfo data in elementColor )
+          {
+            if ( data.ReplacementData != null )
+            {
+              continue;
+            }
+            result += data.Name + "\r\n";
+            result += "!byte ";
+            for ( int i = 0; i < data.Data.Length; ++i )
+            {
+              result += data.Data.ByteAt( i ).ToString();
+              if ( i + 1 < data.Data.Length )
+              {
+                result += ",";
+              }
+              else
+              {
+                result += "\r\n";
+              }
+            }
+          }
+        }*/
+        result += "\r\n";
+        result += "\r\n";
       }
-      result += "\r\n";
 
+      // screens
+      if ( !ProjectTypeOnlyExportsObjectGrid() )
+      {
+        int screenIndex = 0;
+        int totalScreenIndex = 0;
+        if ( ProjectTypeWantsScreenDataInHiLoTable() )
+        {
+          result += m_Project.ExportPrefix + "_SCREEN_DATA_TABLE_LO\r\n";
+          screenIndex = 1;
+          totalScreenIndex = 0;
+          foreach ( Project.Screen screen in m_Project.Screens )
+          {
+            if ( ScreenNeedsExport( screen, totalScreenIndex ) )
+            {
+              result += "          !byte <( " + m_Project.ExportPrefix + "_LEVEL_" + screenIndex.ToString() + " )\r\n";
+              ++screenIndex;
+            }
+            ++totalScreenIndex;
+          }
+          result += "          !byte 0\r\n";
+
+          result += m_Project.ExportPrefix + "_SCREEN_DATA_TABLE_HI\r\n";
+          screenIndex = 1;
+          totalScreenIndex = 0;
+          foreach ( Project.Screen screen in m_Project.Screens )
+          {
+            if ( ScreenNeedsExport( screen, totalScreenIndex ) )
+            {
+              result += "          !byte >( " + m_Project.ExportPrefix + "_LEVEL_" + screenIndex.ToString() + " )\r\n";
+              ++screenIndex;
+            }
+            ++totalScreenIndex;
+          }
+          result += "          !byte 0\r\n";
+          result += "\r\n\r\n";
+        }
+        else
+        {
+          result += m_Project.ExportPrefix + "_SCREEN_DATA_TABLE\r\n";
+          screenIndex = 1;
+          totalScreenIndex = 0;
+          foreach ( Project.Screen screen in m_Project.Screens )
+          {
+            if ( ScreenNeedsExport( screen, totalScreenIndex ) )
+            {
+              result += "          !word " + m_Project.ExportPrefix + "_LEVEL_" + screenIndex.ToString() + "\r\n";
+              ++screenIndex;
+            }
+            ++totalScreenIndex;
+          }
+          result += "          !word 0\r\n";
+          result += "\r\n\r\n";
+        }
+      }
+
+      if ( !ProjectTypeOnlyExportsObjectGrid() )
+      {
+        int searchObjectIndex = 0;
+        int screenIndex = 1;
+        int totalScreenIndex = 0;
+        int     objectAutoIndex = 0;
+        foreach ( Project.Screen screen in m_Project.Screens )
+        {
+          if ( !ScreenNeedsExport( screen, totalScreenIndex ) )
+          {
+            ++totalScreenIndex;
+            continue;
+          }
+          result += m_Project.ExportPrefix + "_LEVEL_" + screenIndex.ToString() + " ;" + screen.Name + "\r\n";
+          if ( ( ProjectTypeWantsScreenSize() )
+          &&   ( !ProjectTypeRequiresSortedElementsByX() )
+          &&   ( !ProjectTypeRequiresSortedElementsByY() ) )
+          {
+            // scroll size
+            result += "          !byte " + screen.Width.ToString() + "\r\n";
+          }
+          else if ( ( ProjectTypeWantsScreenSize() )
+          &&        ( ProjectTypeRequiresSortedElementsByX() ) )
+          {
+            // scroll size
+            result += "          !word " + screen.Width.ToString() + "\r\n";
+          }
+
+          List<Project.ScreenElement>     levelElements = screen.DisplayedElements;
+
+          if ( ProjectTypeRequiresSortedElementsByX() )
+          {
+            levelElements = SortElementsByX( levelElements );
+          }
+          if ( ProjectTypeRequiresSortedElementsByY() )
+          {
+            levelElements = SortElementsByY( levelElements );
+          }
+
+          string prevExportElementType = "";
+          string exportElementType = "";
+          string exportData = "";
+
+
+          if ( ProjectTypeAlwaysRequiresLevelConfig() )
+          {
+            result += "          !byte " + screen.ConfigByte.ToString() + "\r\n";
+          }
+          else if ( screen.ConfigByte != 0 )
+          {
+            result += "          !byte LD_LEVEL_CONFIG," + screen.ConfigByte.ToString() + "\r\n";
+          }
+
+          string prevElementName = "";
+          string prevSpawnSpotType = "";
+          int localElementIndex = 0;
+          int   currentElementX = 0;
+          int   currentElementY = 0;
+
+          foreach ( Project.ScreenElement screenElement in levelElements )
+          {
+            if ( ( ProjectTypeRequiresSortedElementsByX() )
+            &&   ( screenElement.X > currentElementX ) )
+            {
+              int     delta = screenElement.X - currentElementX;
+
+              while ( delta > 31 )
+              {
+                result += "          !byte LDF_X_POS + 31; " + screenElement.X.ToString() + "\r\n";
+                delta -= 31;
+              }
+              if ( delta > 0 )
+              {
+                result += "          !byte LDF_X_POS + " + delta + "; " + screenElement.X.ToString() + "\r\n";
+              }
+              currentElementX = screenElement.X;
+            }
+            if ( ( ProjectTypeRequiresSortedElementsByY() )
+            &&   ( screenElement.Y > currentElementY ) )
+            {
+              result += "          !byte LDF_Y_POS + " + ( screenElement.Y - currentElementY ).ToString() + "; " + screenElement.Y.ToString() + "\r\n";
+              currentElementY = screenElement.Y;
+            }
+
+            result += "          !byte ";
+
+            string elementName = "invalid";
+            if ( screenElement.Index != -1 )
+            {
+              elementName = "EL_" + m_Project.ExportPrefix + "_" + SanitizeName( m_Project.Elements[screenElement.Index] );
+            }
+            int       elementUseIndex = screenElement.Index;
+            if ( !ScreenElementUsesElement( screenElement ) )
+            {
+              elementUseIndex = 0;
+            }
+
+            switch ( screenElement.Type )
+            {
+              case Project.ScreenElementType.LD_ELEMENT:
+                {
+                  exportElementType = "LD_ELEMENT";
+
+                  int xPos = screenElement.X;
+                  int yPos = screenElement.Y;
+
+                  if ( ( ProjectTypeRequiresSortedElementsByX() )
+                  ||   ( ProjectTypeRequiresSortedElementsByY() ) )
+                  {
+                    if ( elementName == prevElementName )
+                    {
+                      // FFxxxxxx
+                      exportData = "LDF_PREV_ELEMENT + " + yPos.ToString() + "\r\n";
+                    }
+                    else
+                    {
+                      exportData = "LDF_ELEMENT + " + yPos.ToString() + "," + elementName + "\r\n";
+                    }
+                  }
+                  else
+                  {
+                    if ( ( ProjectTypeAllowsMoreThan256Elements() )
+                    && ( elementUseIndex >= 256 ) )
+                    {
+                      xPos |= 0x40;
+                      elementName = "( " + elementName + " & $ff )";
+                    }
+                    if ( ProjectTypeAllowsFlagsInXPos() )
+                    {
+                      xPos |= ( screenElement.Flags << 6 );
+                    }
+                    if ( elementName == prevElementName )
+                    {
+                      yPos |= 0x80;
+                      exportData = xPos.ToString() + "," + yPos.ToString() + "\r\n";
+                    }
+                    else
+                    {
+                      exportData = xPos.ToString() + "," + yPos.ToString() + "," + elementName + "\r\n";
+                    }
+                  }
+                }
+                break;
+              case Project.ScreenElementType.LD_ELEMENT_LINE_H:
+                {
+                  exportElementType = "LD_ELEMENT_LINE_H";
+
+                  int xPos = screenElement.X;
+                  int yPos = screenElement.Y;
+
+                  if ( ProjectTypeRequiresSortedElementsByX() )
+                  {
+                    if ( elementName == prevElementName )
+                    {
+                      // FFxxxxxx
+                      exportData = "LDF_PREV_ELEMENT_LINE + " + yPos.ToString() + "," + screenElement.Repeats + "\r\n";
+                    }
+                    else
+                    {
+                      exportData = "LDF_ELEMENT_LINE + " + yPos.ToString() + "," + screenElement.Repeats + "," + elementName + "\r\n";
+                    }
+                  }
+                  else
+                  {
+                    if ( !ProjectTypeAllowsCombiningYRepeatsWith3Bits() )
+                    {
+                      if ( ProjectTypeAllowsFlagsInXPos() )
+                      {
+                        xPos |= ( screenElement.Flags << 6 );
+                      }
+
+                      if ( elementName == prevElementName )
+                      {
+                        yPos |= 0x80;
+                        exportData = xPos.ToString() + "," + yPos.ToString() + "," + screenElement.Repeats.ToString() + "\r\n";
+                      }
+                      else
+                      {
+                        exportData = xPos.ToString() + "," + yPos.ToString() + "," + screenElement.Repeats.ToString() + "," + elementName + "\r\n";
+                      }
+                    }
+                    else
+                    {
+                      bool  repeatElement = false;
+                      if ( ( ProjectTypeSupportsElementLineRepeat() )
+                      && ( elementName == prevElementName ) )
+                      {
+                        exportElementType = "LD_ELEMENT_LINE_H_REPEAT";
+                        repeatElement = true;
+                      }
+                      else
+                      {
+                        exportElementType = "LD_ELEMENT_LINE_H";
+                      }
+
+                      if ( ( ProjectTypeAllowsMoreThan256Elements() )
+                      && ( elementUseIndex >= 256 ) )
+                      {
+                        xPos |= 0x40;
+                        elementName = "( " + elementName + " & $ff )";
+                      }
+                      if ( ProjectTypeAllowsFlagsInXPos() )
+                      {
+                        xPos |= ( screenElement.Flags << 6 );
+                      }
+
+
+                      if ( screenElement.Repeats <= 7 )
+                      {
+                        int combinedYRepeats = yPos + ( screenElement.Repeats << 5 );
+                        exportData = xPos.ToString() + "," + combinedYRepeats.ToString();
+                      }
+                      else
+                      {
+                        exportData = xPos.ToString() + "," + screenElement.Y.ToString() + "," + screenElement.Repeats.ToString();
+                      }
+
+                      if ( !repeatElement )
+                      {
+                        exportData += "," + elementName + "\r\n";
+                      }
+                      else
+                      {
+                        exportData += "\r\n";
+                      }
+                    }
+                  }
+                }
+                break;
+              case Project.ScreenElementType.LD_ELEMENT_LINE_V:
+                {
+                  if ( ProjectTypeRequiresSortedElementsByX() )
+                  {
+                    int yPos = screenElement.Y;
+                    if ( elementName == prevElementName )
+                    {
+                      // FFxxxxxx
+                      exportData = "LDF_PREV_ELEMENT_AREA + " + yPos.ToString() + ", 1," + ( 0x80 | screenElement.Repeats ).ToString() + "\r\n";
+                    }
+                    else
+                    {
+                      exportData = "LDF_ELEMENT_AREA + " + yPos.ToString() + ", 1," + screenElement.Repeats + "," + elementName + "\r\n";
+                    }
+                  }
+                  else
+                  {
+                    exportElementType = "LD_ELEMENT_LINE_V";
+
+                    int xPos = screenElement.X;
+                    int yPos = screenElement.Y;
+
+                    if ( !ProjectTypeAllowsCombiningYRepeatsWith3Bits() )
+                    {
+                      if ( ProjectTypeAllowsFlagsInXPos() )
+                      {
+                        xPos |= ( screenElement.Flags << 6 );
+                      }
+
+                      if ( elementName == prevElementName )
+                      {
+                        yPos |= 0x80;
+                        exportData = xPos.ToString() + "," + yPos.ToString() + "," + screenElement.Repeats.ToString() + "\r\n";
+                      }
+                      else
+                      {
+                        exportData = xPos.ToString() + "," + yPos.ToString() + "," + screenElement.Repeats.ToString() + "," + elementName + "\r\n";
+                      }
+                    }
+                    else
+                    {
+                      bool  repeatElement = false;
+                      if ( ( ProjectTypeSupportsElementLineRepeat() )
+                      && ( elementName == prevElementName ) )
+                      {
+                        exportElementType = "LD_ELEMENT_LINE_V_REPEAT";
+                        repeatElement = true;
+                      }
+                      else
+                      {
+                        exportElementType = "LD_ELEMENT_LINE_V";
+                      }
+
+                      if ( ( ProjectTypeAllowsMoreThan256Elements() )
+                      && ( elementUseIndex >= 256 ) )
+                      {
+                        xPos |= 0x40;
+                        elementName = "( " + elementName + " & $ff )";
+                      }
+                      if ( ProjectTypeAllowsFlagsInXPos() )
+                      {
+                        xPos |= ( screenElement.Flags << 6 );
+                      }
+
+                      if ( screenElement.Repeats <= 7 )
+                      {
+                        int combinedYRepeats = yPos + ( screenElement.Repeats << 5 );
+
+                        exportData = xPos.ToString() + "," + combinedYRepeats.ToString();
+                      }
+                      else
+                      {
+                        exportData = xPos.ToString() + "," + screenElement.Y.ToString() + "," + screenElement.Repeats.ToString();
+                      }
+
+                      if ( !repeatElement )
+                      {
+                        exportData += "," + elementName + "\r\n";
+                      }
+                      else
+                      {
+                        exportData += "\r\n";
+                      }
+                    }
+                  }
+                }
+                break;
+              case Project.ScreenElementType.LD_ELEMENT_AREA:
+                {
+                  exportElementType = "LD_ELEMENT_AREA";
+
+                  int xPos = screenElement.X;
+                  int yPos = screenElement.Y;
+
+                  if ( ProjectTypeRequiresSortedElementsByX() )
+                  {
+                    if ( elementName == prevElementName )
+                    {
+                      // FFxxxxxx
+                      exportData = "LDF_PREV_ELEMENT_AREA + " + yPos.ToString() + "," + screenElement.Repeats + "," + ( 0x80 | screenElement.Repeats2 ).ToString() + "\r\n";
+                    }
+                    else
+                    {
+                      exportData = "LDF_ELEMENT_AREA + " + yPos.ToString() + "," + screenElement.Repeats + "," + screenElement.Repeats2 + "," + elementName + "\r\n";
+                    }
+                  }
+                  else
+                  {
+                    if ( ( ProjectTypeAllowsMoreThan256Elements() )
+                    && ( elementUseIndex >= 256 ) )
+                    {
+                      xPos |= 0x40;
+                      elementName = "( " + elementName + " & $ff )";
+                    }
+                    if ( ProjectTypeAllowsFlagsInXPos() )
+                    {
+                      xPos |= ( screenElement.Flags << 6 );
+                    }
+
+                    if ( elementName == prevElementName )
+                    {
+                      yPos |= 0x80;
+                      exportData = xPos.ToString() + "," + yPos.ToString() + ","
+                                + screenElement.Repeats.ToString() + ","
+                                + screenElement.Repeats2.ToString() + "\r\n";
+                    }
+                    else
+                    {
+                      exportData = xPos.ToString() + "," + yPos.ToString() + ","
+                                + screenElement.Repeats.ToString() + ","
+                                + screenElement.Repeats2.ToString() + ","
+                                + elementName + "\r\n";
+                    }
+                  }
+                }
+                break;
+              case Project.ScreenElementType.LD_LINE_H:
+                {
+                  exportElementType = "LD_LINE_H";
+                  int xPos = screenElement.X;
+
+                  if ( ProjectTypeAllowsFlagsInXPos() )
+                  {
+                    xPos |= ( screenElement.Flags << 6 );
+                  }
+
+                  if ( ProjectTypeAllowsColorInElements() )
+                  {
+                    exportData = xPos.ToString() + "," + screenElement.Y.ToString() + "," + screenElement.Repeats.ToString() + ","
+                              + screenElement.Char.ToString() + "," + screenElement.Color.ToString() + "\r\n";
+                  }
+                  else
+                  {
+                    exportData = xPos.ToString() + "," + screenElement.Y.ToString() + "," + screenElement.Repeats.ToString() + ","
+                              + screenElement.Char.ToString() + "\r\n";
+                  }
+                }
+                break;
+              case Project.ScreenElementType.LD_LINE_V:
+                {
+                  exportElementType = "LD_LINE_V";
+
+                  int xPos = screenElement.X;
+
+                  if ( ProjectTypeAllowsFlagsInXPos() )
+                  {
+                    xPos |= ( screenElement.Flags << 6 );
+                  }
+
+                  if ( ProjectTypeAllowsColorInElements() )
+                  {
+                    exportData = xPos.ToString() + "," + screenElement.Y.ToString() + "," + screenElement.Repeats.ToString() + ","
+                              + screenElement.Char.ToString() + "," + screenElement.Color.ToString() + "\r\n";
+                  }
+                  else
+                  {
+                    exportData = xPos.ToString() + "," + screenElement.Y.ToString() + "," + screenElement.Repeats.ToString() + ","
+                              + screenElement.Char.ToString() + "\r\n";
+                  }
+                }
+                break;
+              case Project.ScreenElementType.LD_SEARCH_OBJECT:
+                {
+                  exportElementType = "LD_SEARCH_OBJECT";
+                  int     xPos = screenElement.X;
+
+                  if ( ProjectTypeAllowsFlagsInXPos() )
+                  {
+                    xPos |= ( screenElement.Flags << 6 );
+                  }
+
+                  if ( ( ProjectTypeAllowsMoreThan256Elements() )
+                  && ( elementUseIndex >= 256 ) )
+                  {
+                    xPos |= 0x40;
+                    elementName = "( " + elementName + " & $ff )";
+                  }
+                  if ( ProjectTypeHas16BitIndex() )
+                  {
+                    exportData = xPos.ToString() + "," + screenElement.Y.ToString() + "," + elementName + ","
+                              + ( searchObjectIndex >> 8 ).ToString() + ","
+                              + ( searchObjectIndex & 0xff ).ToString() + "\r\n";
+                  }
+                  else
+                  {
+                    exportData = xPos.ToString() + "," + screenElement.Y.ToString() + "," + elementName + ","
+                              + screenElement.SearchObjectIndex.ToString() + "\r\n";
+                  }
+                  ++searchObjectIndex;
+                }
+                break;
+              case Project.ScreenElementType.LD_LINE_H_ALT:
+                exportElementType = "LD_LINE_H_ALT";
+                if ( ProjectTypeAllowsColorInElements() )
+                {
+                  exportData = screenElement.X.ToString() + "," + screenElement.Y.ToString() + "," + screenElement.Repeats.ToString() + ","
+                            + screenElement.Char.ToString() + "," + screenElement.Color.ToString() + "\r\n";
+                }
+                else
+                {
+                  exportData = screenElement.X.ToString() + "," + screenElement.Y.ToString() + "," + screenElement.Repeats.ToString() + ","
+                            + screenElement.Char.ToString() + "\r\n";
+                }
+                break;
+              case Project.ScreenElementType.LD_LINE_V_ALT:
+                exportElementType = "LD_LINE_V_ALT";
+                if ( ProjectTypeAllowsColorInElements() )
+                {
+                  exportData = screenElement.X.ToString() + "," + screenElement.Y.ToString() + "," + screenElement.Repeats.ToString() + ","
+                            + screenElement.Char.ToString() + "," + screenElement.Color.ToString() + "\r\n";
+                }
+                else
+                {
+                  exportData = screenElement.X.ToString() + "," + screenElement.Y.ToString() + "," + screenElement.Repeats.ToString() + ","
+                            + screenElement.Char.ToString() + "\r\n";
+                }
+                break;
+              case Project.ScreenElementType.LD_AREA:
+                {
+                  exportElementType = "LD_AREA";
+
+                  int xPos = screenElement.X;
+
+                  if ( ProjectTypeAllowsFlagsInXPos() )
+                  {
+                    xPos |= ( screenElement.Flags << 6 );
+                  }
+
+                  if ( !ProjectTypeAllowsColorInElements() )
+                  {
+                    exportData = xPos.ToString() + "," + screenElement.Y.ToString() + ","
+                              + screenElement.Repeats.ToString() + ","
+                              + screenElement.Repeats2.ToString() + ","
+                              + screenElement.Char.ToString() + "\r\n";
+                  }
+                  else
+                  {
+                    exportData = xPos.ToString() + "," + screenElement.Y.ToString() + ","
+                              + screenElement.Repeats.ToString() + ","
+                              + screenElement.Repeats2.ToString() + ","
+                              + screenElement.Char.ToString() + ","
+                              + screenElement.Color.ToString() + "\r\n";
+                  }
+                }
+                break;
+              case Project.ScreenElementType.LD_OBJECT:
+                if ( ProjectTypeHasCompactedObjects() )
+                {
+                  if ( ProjectTypeRequiresSortedElementsByX() )
+                  {
+                    exportData = "LD_OBJECT | " + screenElement.Object.TemplateIndex.ToString() + ", " + screenElement.Y.ToString() + System.Environment.NewLine;
+                  }
+                  else
+                  {
+                    exportData = "LD_OBJECT | " + screenElement.Object.TemplateIndex.ToString() + ", " + screenElement.X.ToString() + System.Environment.NewLine;
+                  }
+                  break;
+                }
+                exportElementType = "LD_OBJECT";
+                if ( ProjectTypeHasAutoObjectIndex() )
+                {
+                  // add behaviour/bounds
+                  if ( screenElement.Object.TemplateIndex != -1 )
+                  {
+                    exportData = screenElement.X.ToString() + "," + screenElement.Y.ToString() + ","
+                              + "TYPE_" + SanitizeName( m_Project.ObjectTemplates[screenElement.Object.TemplateIndex] ) + ","
+                              + screenElement.Object.Color.ToString() + ","
+                              + objectAutoIndex.ToString() + ",";
+
+                    exportData += screenElement.Object.Speed.ToString() + ",";
+                    if ( ( screenElement.Object.MoveBorderLeft != 0 )
+                    ||   ( screenElement.Object.MoveBorderRight != 0 ) )
+                    {
+                      exportData += ( screenElement.X - screenElement.Object.MoveBorderLeft ).ToString() + "," + ( screenElement.X + screenElement.Object.MoveBorderRight ).ToString();
+                    }
+                    else
+                    {
+                      exportData += ( screenElement.Y - screenElement.Object.MoveBorderTop ).ToString() + "," + ( screenElement.Y + screenElement.Object.MoveBorderBottom ).ToString();
+                    }
+                    ++objectAutoIndex;
+                  }
+                  else
+                  {
+                    exportData += "LD_OBJECT - not correct!";
+                  }
+                  exportData += "\r\n";
+                }
+                else if ( ProjectTypeAllowsObjectBehaviour() )
+                {
+                  // add behaviour/bounds
+                  if ( screenElement.Object.TemplateIndex != -1 )
+                  {
+                    int     behaviour = 0;
+                    if ( !m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].Behaviours.ContainsKey( screenElement.Object.Behaviour ) )
+                    {
+                      //System.Windows.Forms.MessageBox.Show( "Missing behaviour " + screenElement.Object.Behaviour.ToString() + " for " + m_Project.ObjectTemplates[screenElement.Object.TemplateIndex] );
+                      Debug.Log( "Missing behaviour " + screenElement.Object.Behaviour.ToString() + " for " + m_Project.ObjectTemplates[screenElement.Object.TemplateIndex] + " in " + screen.Name + ": " + screenIndex );
+                    }
+                    else
+                    {
+                      behaviour = m_Project.ObjectTemplates[screenElement.Object.TemplateIndex].Behaviours[screenElement.Object.Behaviour].Value;
+                    }
+                    exportData = screenElement.X.ToString() + "," + screenElement.Y.ToString() + ","
+                              + "TYPE_" + SanitizeName( m_Project.ObjectTemplates[screenElement.Object.TemplateIndex] ) + ","
+                              + screenElement.Object.Color.ToString() + ","
+                              + behaviour.ToString() + ",";
+
+                    exportData += screenElement.Object.Speed.ToString() + ",";
+                    if ( ( screenElement.Object.MoveBorderLeft != 0 )
+                    || ( screenElement.Object.MoveBorderRight != 0 ) )
+                    {
+                      exportData += ( screenElement.X - screenElement.Object.MoveBorderLeft ).ToString() + "," + ( screenElement.X + screenElement.Object.MoveBorderRight ).ToString();
+                    }
+                    else
+                    {
+                      exportData += ( screenElement.Y - screenElement.Object.MoveBorderTop ).ToString() + "," + ( screenElement.Y + screenElement.Object.MoveBorderBottom ).ToString();
+                    }
+                  }
+                  else
+                  {
+                    exportData += "LD_OBJECT - not correct!";
+                  }
+                  exportData += "\r\n";
+                }
+                else if ( ProjectTypeAllowsOptionalObjectData() )
+                {
+                  if ( screenElement.Object.TemplateIndex != -1 )
+                  {
+                    if ( screenElement.Object.Optional != Project.GameObject.OptionalType.ALWAYS_SHOWN )
+                    {
+                      if ( screenElement.Object.Optional == Project.GameObject.OptionalType.SHOWN_IF_OPTIONAL_SET )
+                      {
+                        exportElementType = "LD_OPTIONAL_SHOWN_OBJECT";
+                        exportData = screenElement.Object.OptionalValue.ToString() + ","
+                                  + screenElement.X.ToString() + "," + screenElement.Y.ToString() + ","
+                                  + "TYPE_" + SanitizeName( m_Project.ObjectTemplates[screenElement.Object.TemplateIndex] )
+                                  + "\r\n";
+                      }
+                      else
+                      {
+                        exportElementType = "LD_OPTIONAL_HIDDEN_OBJECT";
+                        exportData = screenElement.Object.OptionalValue.ToString() + ","
+                                  + screenElement.X.ToString() + "," + screenElement.Y.ToString() + ","
+                                  + "TYPE_" + SanitizeName( m_Project.ObjectTemplates[screenElement.Object.TemplateIndex] )
+                                  + "\r\n";
+                      }
+                    }
+                    else
+                    {
+                      exportData = screenElement.X.ToString() + "," + screenElement.Y.ToString() + ","
+                                + "TYPE_" + SanitizeName( m_Project.ObjectTemplates[screenElement.Object.TemplateIndex] ) + "\r\n";
+                    }
+                  }
+                  else
+                  {
+                    Debug.Log( "Invalid Object in screen " + screenIndex + " at line " + localElementIndex );
+                  }
+                }
+                else if ( ProjectTypeAllowsObjectData() )
+                {
+                  // !byte LD_OBJECT,5,4,TYPE_PLAYER_DEAN
+                  if ( screenElement.Object.TemplateIndex != -1 )
+                  {
+                    if ( screenElement.Object.Data != 0 )
+                    {
+                      exportElementType = "LD_DATA_OBJECT";
+                      exportData = screenElement.Object.Data.ToString() + ","
+                                + screenElement.X.ToString() + "," + screenElement.Y.ToString() + ","
+                                + "TYPE_" + SanitizeName( m_Project.ObjectTemplates[screenElement.Object.TemplateIndex] )
+                                + "\r\n";
+                    }
+                    else
+                    {
+                      exportData = screenElement.X.ToString() + "," + screenElement.Y.ToString() + ","
+                                + "TYPE_" + SanitizeName( m_Project.ObjectTemplates[screenElement.Object.TemplateIndex] ) + "\r\n";
+                    }
+                  }
+                  else
+                  {
+                    Debug.Log( "Invalid Object in screen " + screenIndex + " at line " + localElementIndex );
+                  }
+                }
+                else
+                {
+                  // !byte LD_OBJECT,5,4,TYPE_PLAYER_DEAN
+                  if ( screenElement.Object.TemplateIndex != -1 )
+                  {
+                    exportData = screenElement.X.ToString() + "," + screenElement.Y.ToString() + ","
+                              + "TYPE_" + SanitizeName( m_Project.ObjectTemplates[screenElement.Object.TemplateIndex] ) + "\r\n";
+                  }
+                  else
+                  {
+                    Debug.Log( "Invalid Object in screen " + screenIndex + " at line " + localElementIndex );
+                  }
+                }
+                break;
+              case Project.ScreenElementType.LD_SPAWN_SPOT:
+                exportElementType = "LD_SPAWN_SPOT";
+                if ( screenElement.Object.TemplateIndex != -1 )
+                {
+                  string    spawnSpotType = SanitizeName( m_Project.ObjectTemplates[screenElement.Object.TemplateIndex] );
+                  if ( prevSpawnSpotType == spawnSpotType )
+                  {
+                    int     posY = screenElement.Y | 0x80;
+                    exportData = screenElement.X.ToString() + "," + posY.ToString() + ","
+                              + screenElement.Repeats.ToString() + "\r\n";
+                  }
+                  else
+                  {
+                    exportData = screenElement.X.ToString() + "," + screenElement.Y.ToString() + ","
+                              + "TYPE_" + spawnSpotType + ","
+                              + screenElement.Repeats.ToString() + "\r\n";
+                  }
+                  prevSpawnSpotType = spawnSpotType;
+                }
+                else
+                {
+                  Debug.Log( "Invalid Object in spawn spot in screen " + screenIndex + " at line " + localElementIndex );
+                }
+                break;
+              case Project.ScreenElementType.LD_DOOR:
+                exportElementType = "LD_DOOR";
+                if ( ProjectTypeHasSimpleDoors() )
+                {
+                  exportData = screenElement.X.ToString() + ","
+                                       + screenElement.Y.ToString() + ","
+                                       + elementName + "\r\n";
+                }
+                else if ( ProjectTypeAllowsDoorWithTarget() )
+                {
+                  exportData = screenElement.TargetLevel.ToString() + ","
+                                       + screenElement.TargetX.ToString() + ","
+                                       + screenElement.TargetY.ToString() + ","
+                                       + screenElement.X.ToString() + ","
+                                       + screenElement.Y.ToString() + ","
+                                       + elementName + "\r\n";
+                }
+                else
+                {
+                  exportData = screenElement.X.ToString() + ","
+                                       + screenElement.Y.ToString() + ","
+                                       + elementName + ","
+                                       + screenElement.TargetX.ToString() + "\r\n";
+                }
+                break;
+              case Project.ScreenElementType.LD_CLUE:
+                exportElementType = "LD_CLUE";
+                if ( ProjectTypeAllowsObjectTypeInClue() )
+                {
+                  exportData = screenElement.X.ToString() + ","
+                                       + screenElement.Y.ToString() + ","
+                                       + elementName + ","
+                                       + screenElement.Repeats.ToString() + "\r\n";
+                }
+                else
+                {
+                  exportData = screenElement.X.ToString() + ","
+                                       + screenElement.Y.ToString() + ","
+                                       + screenElement.Repeats.ToString() + "\r\n";
+                }
+                break;
+              case Project.ScreenElementType.LD_SPECIAL:
+                {
+                  exportElementType = "LD_SPECIAL";
+
+                  int xPos = screenElement.X;
+                  int yPos = screenElement.Y;
+
+                  if ( ( ProjectTypeAllowsMoreThan256Elements() )
+                  && ( elementUseIndex >= 256 ) )
+                  {
+                    xPos |= 0x40;
+                    elementName = "( " + elementName + " & $ff )";
+                  }
+                  if ( ProjectTypeAllowsFlagsInXPos() )
+                  {
+                    xPos |= ( screenElement.Flags << 6 );
+                  }
+
+                  if ( elementName == prevElementName )
+                  {
+                    yPos |= 0x80;
+                  }
+                  if ( elementName == prevElementName )
+                  {
+                    exportData = xPos + ","
+                                 + yPos + ","
+                                 + screenElement.Repeats.ToString() + "\r\n";
+                  }
+                  else
+                  {
+                    exportData = xPos + ","
+                                 + yPos + ","
+                                 + elementName + ","
+                                 + screenElement.Repeats.ToString() + "\r\n";
+                  }
+                }
+                break;
+            }
+            if ( screenElement.Type != Project.ScreenElementType.LD_SPAWN_SPOT )
+            {
+              prevSpawnSpotType = "";
+            }
+            // put extra flags in element type
+            if ( ProjectTypeAllowsFlagsInElementType() )
+            {
+              if ( screenElement.Flags != 0 )
+              {
+                // force element byte empty so element type is not reused (would interfere with flags)
+                prevExportElementType = "";
+              }
+            }
+            if ( ( ProjectTypeRequiresSortedElementsByX() )
+            || ( ProjectTypeRequiresSortedElementsByY() ) )
+            {
+              result += exportData;
+            }
+            else if ( ProjectTypeAllowsPrimitiveTypeReuse() )
+            {
+              if ( prevExportElementType != exportElementType )
+              {
+                prevExportElementType = exportElementType;
+                result += exportElementType + "," + exportData;
+              }
+              else
+              {
+                result += exportData;
+              }
+            }
+            else
+            {
+              result += exportElementType + "," + exportData;
+            }
+
+            if ( ScreenElementUsesElement( screenElement ) )
+            {
+              prevElementName = elementName;
+            }
+            ++localElementIndex;
+          }
+
+          result += "          !byte LD_END\r\n";
+
+          result += "\r\n";
+
+          if ( ProjectTypeAllowsExportOfCustomColors() )
+          {
+            int   color1 = ( screen.OverrideMC1 != -1 ? screen.OverrideMC1 : m_Project.Charsets[screen.CharsetIndex].Colors.MultiColor1 );
+            int   color2 = ( screen.OverrideMC2 != -1 ? screen.OverrideMC2 : m_Project.Charsets[screen.CharsetIndex].Colors.MultiColor2 );
+
+            result += "          !byte $" + ( ( color1 << 4 ) + color2 ).ToString( "X2" ) + "\r\n";
+          }
+          result += screen.ExtraData + "\r\n";
+
+          ++screenIndex;
+          ++totalScreenIndex;
+        }
+        result += "\r\n";
+      }
+      
       // Wonderland map-data
       if ( m_Project.ProjectType == "Wonderland" )
       {
@@ -4389,7 +4454,7 @@ insert_now:;
         result += "\r\n";
         result += "\r\n";
         result += "MAP_PLUS\r\n";
-        totalScreenIndex = 52;
+        int totalScreenIndex = 52;
         for ( int j = 0; j < 10; ++j )
         {
           result += "          !byte ";
@@ -4534,7 +4599,89 @@ insert_now:;
         }
       }
 
-      GR.IO.File.WriteAllText( editExportFile.Text, result );
+      if ( ProjectTypeOnlyExportsObjectGrid() )
+      {
+        var objects = new List<ScreenElement>();
+
+        foreach ( var screen in m_Project.Screens )
+        {
+          objects.AddRange( screen.DisplayedElements.Where( s => s.Type == ScreenElementType.LD_OBJECT ) );
+        }
+        var     grid = new SortedDictionary<Tuple<int, int>, List<ScreenElement>>();
+
+        int     gridW = 64;
+        int     gridH = 32;
+        int     gridSectionsX = 1;
+        int     gridSectionsY = 1;
+
+        foreach ( var obj in objects )
+        {
+          int  x = obj.X / gridW;
+          int  y = obj.Y / gridH;
+
+          if ( x > gridSectionsX )
+          {
+            gridSectionsX = x;
+          }
+          if ( y > gridSectionsY )
+          {
+            gridSectionsY = y;
+          }
+
+          var pos = new Tuple<int,int>( x, y );
+
+          if ( !grid.ContainsKey( pos ) )
+          {
+            grid.Add( pos, new List<ScreenElement>() );
+          }
+          grid[pos].Add( obj );
+        }
+        for ( int i = 0; i < gridSectionsX; ++i )
+        {
+          for ( int j = 0; j < gridSectionsY; ++j )
+          {
+            var pos = new Tuple<int,int>( i, j );
+            if ( !grid.ContainsKey( pos ) )
+            {
+              grid.Add( pos, new List<ScreenElement>() );
+            }
+          }
+        }
+
+
+        //TODO generate grid
+        result += "GRID_OBJECT_COUNT\r\n";
+        foreach ( var pos in grid )
+        {
+          result += $"          !byte {pos.Value.Count}\r\n";
+        }
+        result += "\r\n";
+
+        result += "GRID_OBJECT_LIST_LO\r\n";
+        foreach ( var pos in grid )
+        {
+          result += $"          !byte <GRID_OBJECT_LIST_{pos.Key.Item1}_{pos.Key.Item2}\r\n";
+        }
+        result += "\r\n";
+        result += "GRID_OBJECT_LIST_HI\r\n";
+        foreach ( var pos in grid )
+        {
+          result += $"          !byte >GRID_OBJECT_LIST_{pos.Key.Item1}_{pos.Key.Item2}\r\n";
+        }
+        result += "\r\n";
+
+        foreach ( var pos in grid )
+        {
+          result += $"GRID_OBJECT_LIST_{pos.Key.Item1}_{pos.Key.Item2}\r\n";
+          foreach ( var obj in pos.Value )
+          {
+            result += $"          !byte {obj.X},{obj.Y},{obj.Object.TemplateIndex}\r\n";
+          }
+        }
+        result += "\r\n";
+      }
+      targetFilename = GR.Path.RenameFile( m_ProjectFilename, targetFilename );
+      GR.IO.File.WriteAllText( targetFilename, result );
       //Debug.Log( result );
     }
 
@@ -4623,7 +4770,7 @@ insert_now:;
         if ( ( Buttons & MouseButtons.Left ) == MouseButtons.Left )
         {
           if ( ( m_DraggedScreenElement.X != realX - m_DragOffsetX )
-          || ( m_DraggedScreenElement.Y != realY - m_DragOffsetY ) )
+          ||   ( m_DraggedScreenElement.Y != realY - m_DragOffsetY ) )
           {
             if ( ( realX >= 0 )
             && ( realY >= 0 ) )
@@ -4652,11 +4799,11 @@ insert_now:;
         foreach ( Project.ScreenElement itElement in m_CurrentScreen.DisplayedElements )
         {
           if ( ( ( itElement.Type == Project.ScreenElementType.LD_OBJECT )
-          || ( itElement.Type == Project.ScreenElementType.LD_SPAWN_SPOT ) )
-          && ( realPixelX >= itElement.X * 8 - 8 )
-          && ( realPixelX < itElement.X * 8 + 24 - 8 )
-          && ( realPixelY >= itElement.Y * 8 - 13 )
-          && ( realPixelY < itElement.Y * 8 + 21 - 13 ) )
+          ||     ( itElement.Type == Project.ScreenElementType.LD_SPAWN_SPOT ) )
+          &&   ( realPixelX >= itElement.X * 8 - 8 )
+          &&   ( realPixelX < itElement.X * 8 + 24 - 8 )
+          &&   ( realPixelY >= itElement.Y * 8 - 13 )
+          &&   ( realPixelY < itElement.Y * 8 + 21 - 13 ) )
           {
             screenElement = itElement;
             break;
@@ -4796,6 +4943,28 @@ insert_now:;
           }
           m_DragOffsetX = realX - screenElement.X;
           m_DragOffsetY = realY - screenElement.Y;
+        }
+      }
+      else if ( ProjectTypeHasTileGrid() )
+      {
+        if ( m_CurrentScreen != null )
+        {
+          int   tx = realX / m_CurrentScreen.TileWidth;
+          int   ty = realY / m_CurrentScreen.TileHeight;
+          if ( ( Buttons & MouseButtons.Left ) == MouseButtons.Left )
+          {
+            if ( ( m_CurrentScreen.TileGrid[tx, ty] != m_CurrentTileIndex )
+            &&   ( m_CurrentTileIndex < m_Project.Elements.Count ) )
+            {
+              m_CurrentScreen.TileGrid[tx, ty] = m_CurrentTileIndex;
+              Modified = true;
+              RedrawScreen();
+            }
+          }
+          else if ( ( Buttons & MouseButtons.Right ) == MouseButtons.Right )
+          {
+            m_CurrentTileIndex = m_CurrentScreen.TileGrid[tx, ty];
+          }
         }
       }
     }
@@ -5409,7 +5578,7 @@ redo_screen:;
     private bool ScreenElementHasNoChars( Project.ScreenElement Element )
     {
       if ( ( Element.Type == Project.ScreenElementType.LD_OBJECT )
-      || ( Element.Type == Project.ScreenElementType.LD_SPAWN_SPOT ) )
+      ||   ( Element.Type == Project.ScreenElementType.LD_SPAWN_SPOT ) )
       {
         return true;
       }
@@ -5618,10 +5787,10 @@ redo_screen:;
         foreach ( var element in screen.DisplayedElements )
         {
           if ( ( element.Type == Project.ScreenElementType.LD_OBJECT )
-          || ( element.Type == Project.ScreenElementType.LD_SPAWN_SPOT ) )
+          ||   ( element.Type == Project.ScreenElementType.LD_SPAWN_SPOT ) )
           {
             if ( ( element.Object != null )
-            && ( element.Object.TemplateIndex == selectedIndex ) )
+            &&   ( element.Object.TemplateIndex == selectedIndex ) )
             {
               stillUsed = true;
               break;
@@ -5647,7 +5816,7 @@ redo_screen:;
         foreach ( var element in screen.DisplayedElements )
         {
           if ( ( element.Type == Project.ScreenElementType.LD_OBJECT )
-          || ( element.Type == Project.ScreenElementType.LD_SPAWN_SPOT ) )
+          ||   ( element.Type == Project.ScreenElementType.LD_SPAWN_SPOT ) )
           {
             if ( element.Object.TemplateIndex >= selectedIndex )
             {
@@ -5791,7 +5960,7 @@ redo_screen:;
       if ( screenElement.Type == Project.ScreenElementType.LD_OBJECT )
       {
         if ( ( screenElement.Object != null )
-        && ( GR.Convert.ToI32( editObjectBorderLeft.Text ) != screenElement.Object.MoveBorderLeft ) )
+        &&   ( GR.Convert.ToI32( editObjectBorderLeft.Text ) != screenElement.Object.MoveBorderLeft ) )
         {
           screenElement.Object.MoveBorderLeft = GR.Convert.ToI32( editObjectBorderLeft.Text );
           Modified = true;
@@ -5820,7 +5989,7 @@ redo_screen:;
       if ( screenElement.Type == Project.ScreenElementType.LD_OBJECT )
       {
         if ( ( screenElement.Object != null )
-        && ( GR.Convert.ToI32( editObjectBorderTop.Text ) != screenElement.Object.MoveBorderTop ) )
+        &&   ( GR.Convert.ToI32( editObjectBorderTop.Text ) != screenElement.Object.MoveBorderTop ) )
         {
           screenElement.Object.MoveBorderTop = GR.Convert.ToI32( editObjectBorderTop.Text );
           Modified = true;
@@ -6079,16 +6248,22 @@ redo_screen:;
 
     private void scrollScreen_ValueChanged( object sender, EventArgs e )
     {
-      m_ScreenOffsetX = scrollScreen.Value;
-      RedrawScreen();
+      if ( m_ScreenOffsetX != scrollScreen.Value )
+      {
+        m_ScreenOffsetX = scrollScreen.Value;
+        RedrawScreen();
+      }
     }
 
 
 
     private void scrollScreenV_ValueChanged( object sender, EventArgs e )
     {
-      m_ScreenOffsetY = scrollScreenV.Value;
-      RedrawScreen();
+      if ( m_ScreenOffsetY != scrollScreenV.Value )
+      {
+        m_ScreenOffsetY = scrollScreenV.Value;
+        RedrawScreen();
+      }
     }
 
 
@@ -6391,15 +6566,15 @@ redo_screen:;
         foreach ( Project.ScreenElement element in screen.DisplayedElements )
         {
           if ( ( element.Type != Project.ScreenElementType.LD_OBJECT )
-          && ( element.Type != Project.ScreenElementType.LD_SPECIAL ) )
+          &&   ( element.Type != Project.ScreenElementType.LD_SPECIAL ) )
           {
             element.Index += elementOffset;
           }
           if ( ( element.Type == Project.ScreenElementType.LD_OBJECT )
-          || ( element.Type == Project.ScreenElementType.LD_SPAWN_SPOT ) )
+          ||   ( element.Type == Project.ScreenElementType.LD_SPAWN_SPOT ) )
           {
             if ( ( element.Object != null )
-            && ( element.Object.TemplateIndex != -1 ) )
+            &&   ( element.Object.TemplateIndex != -1 ) )
             {
               element.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile.Image );
               RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile,
@@ -6695,7 +6870,7 @@ redo_screen:;
         ++index;
       }
       if ( ( comboElementCharset.SelectedIndex >= 0 )
-      && ( comboElementCharset.SelectedIndex < m_Project.Charsets.Count ) )
+      &&   ( comboElementCharset.SelectedIndex < m_Project.Charsets.Count ) )
       {
         SetActiveElementCharset( m_Project.Charsets[comboElementCharset.SelectedIndex],
                                  m_Project.Charsets[comboElementCharset.SelectedIndex].Colors.MultiColor1,
@@ -6718,10 +6893,10 @@ redo_screen:;
           foreach ( Project.ScreenElement element in screen.DisplayedElements )
           {
             if ( ( element.Type == Project.ScreenElementType.LD_OBJECT )
-            || ( element.Type == Project.ScreenElementType.LD_SPAWN_SPOT ) )
+            ||   ( element.Type == Project.ScreenElementType.LD_SPAWN_SPOT ) )
             {
               if ( ( element.Object != null )
-              && ( element.Object.TemplateIndex != -1 ) )
+              &&   ( element.Object.TemplateIndex != -1 ) )
               {
                 element.Object.SpriteImage = new GR.Image.MemoryImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile.Image );
                 RebuildSpriteImage( m_SpriteProject.Sprites[m_Project.ObjectTemplates[element.Object.TemplateIndex].StartSprite].Tile,
@@ -8212,7 +8387,90 @@ checkfailed:;
 
     private void importMapProjectToolStripMenuItem_Click( object sender, EventArgs e )
     {
+      OpenFileDialog openFile = new OpenFileDialog();
 
+      openFile.Title = "Open map project";
+      openFile.Filter = "Map Project Files|*.mapproject";
+
+      if ( openFile.ShowDialog() != DialogResult.OK )
+      {
+        return;
+      }
+
+      var mapProject = new MapProject();
+
+      if ( !mapProject.ReadFromBuffer( GR.IO.File.ReadAllBytes( openFile.FileName ) ) )
+      {
+        return;
+      }
+      Clear();
+
+      mapProject.Charset.Name = openFile.FileName;
+
+      string shortName = System.IO.Path.GetFileNameWithoutExtension( openFile.FileName );
+
+      m_Project.Charsets.Add( mapProject.Charset );
+
+      CharsetProjectInfo info = new CharsetProjectInfo();
+      info.Filename = mapProject.Charset.Name;
+      info.Multicolor = true;
+      m_Project.CharsetProjects.Add( info );
+      comboScreenCharset.Items.Add( shortName );
+      comboElementCharset.Items.Add( shortName );
+
+      comboElements.BeginUpdate();
+      listAvailableElements.BeginUpdate();
+      comboScreens.BeginUpdate();
+      comboRegionScreens.BeginUpdate();
+
+      int     tileIndex = 0;
+      foreach ( var tile in mapProject.Tiles )
+      {
+        int     elementWidth = mapProject.Maps[0].TileSpacingX;
+        int     elementHeight = mapProject.Maps[0].TileSpacingY;
+
+        Project.Element element = new Project.Element();
+
+        element.Characters.Resize( elementWidth, elementHeight );
+        element.Name = $"Tile {tileIndex}";
+
+        for ( int x = 0; x < elementWidth; ++x )
+        {
+          for ( int y = 0; y < elementHeight; ++y )
+          {
+            element.Characters[x, y].Char   = tile.Chars[x, y].Character;
+            element.Characters[x, y].Color  = tile.Chars[x, y].Color;
+          }
+        }
+
+        m_Project.Elements.Add( element );
+        comboElements.Items.Add( element.Name );
+        listAvailableElements.Items.Add( element.Name );
+
+        ++tileIndex;
+      }
+
+      foreach ( var map in mapProject.Maps )
+      {
+        var newMap = new Project.Screen();
+
+        newMap.Name = map.Name;
+        newMap.Width = map.Tiles.Width * map.TileSpacingX;
+        newMap.Height = map.Tiles.Height * map.TileSpacingY;
+        newMap.TileGrid = map.Tiles;
+        newMap.TileWidth = map.TileSpacingX;
+        newMap.TileHeight = map.TileSpacingY;
+
+        comboScreens.Items.Add( new GR.Generic.Tupel<string, Project.Screen>( comboScreens.Items.Count.ToString() + ":" + newMap.Name, newMap ) );
+        comboRegionScreens.Items.Add( new GR.Generic.Tupel<string, Project.Screen>( comboScreens.Items.Count.ToString() + ":" + newMap.Name, newMap ) );
+        m_Project.Screens.Add( newMap );
+      }
+
+      comboElements.EndUpdate();
+      listAvailableElements.EndUpdate();
+      comboScreens.EndUpdate();
+      comboRegionScreens.EndUpdate();
+      Modified = true;
     }
 
 
